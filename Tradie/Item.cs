@@ -1,6 +1,4 @@
-﻿using System.IO;
-
-namespace Tradie
+﻿namespace Tradie
 {
     public class Item
     {

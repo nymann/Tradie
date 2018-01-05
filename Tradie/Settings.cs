@@ -1,5 +1,4 @@
-﻿using PoeHUD.Controllers;
-using PoeHUD.Hud.Settings;
+﻿using PoeHUD.Hud.Settings;
 using PoeHUD.Plugins;
 using SharpDX;
 

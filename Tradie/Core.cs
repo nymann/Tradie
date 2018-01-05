@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using PoeHUD.Hud.Menu;
 using PoeHUD.Plugins;
 using PoeHUD.Poe;
@@ -30,7 +28,8 @@ namespace Tradie
             MenuWrapper.AddMenu(rootMenu, "Text Size", Settings.TextSize);
             var yourItems = MenuWrapper.AddMenu(rootMenu, "Your Trade Items");
             MenuWrapper.AddMenu(yourItems, "Ascending Order", Settings.YourItemsAscending);
-            MenuWrapper.AddMenu(yourItems, "Currency Before Or After", Settings.YourItemsImageLeftOrRight, "On: <Currency> x<Amount>\nOff: <Amount>x <Currency>");
+            MenuWrapper.AddMenu(yourItems, "Currency Before Or After", Settings.YourItemsImageLeftOrRight,
+                "On: <Currency> x<Amount>\nOff: <Amount>x <Currency>");
             MenuWrapper.AddMenu(yourItems, "Text Color", Settings.YourItemTextColor);
             var yourItemLocation = MenuWrapper.AddMenu(yourItems, "Starting Location");
             MenuWrapper.AddMenu(yourItemLocation, "X", Settings.YourItemStartingLocationX);
@@ -38,7 +37,8 @@ namespace Tradie
 
             var theirItems = MenuWrapper.AddMenu(rootMenu, "Their Trade Items");
             MenuWrapper.AddMenu(theirItems, "Ascending Order", Settings.TheirItemsAscending);
-            MenuWrapper.AddMenu(theirItems, "Currency Before Or After", Settings.TheirItemsImageLeftOrRight, "On: <Currency> x<Amount>\nOff: <Amount>x <Currency>");
+            MenuWrapper.AddMenu(theirItems, "Currency Before Or After", Settings.TheirItemsImageLeftOrRight,
+                "On: <Currency> x<Amount>\nOff: <Amount>x <Currency>");
             MenuWrapper.AddMenu(theirItems, "Text Color", Settings.TheirItemTextColor);
             var theirItemLocation = MenuWrapper.AddMenu(theirItems, "Starting Location");
             MenuWrapper.AddMenu(theirItemLocation, "X", Settings.TheirItemStartingLocationX);
@@ -49,9 +49,7 @@ namespace Tradie
         {
             var tradingWindow = GetTradingWindow();
             if (tradingWindow == null || !tradingWindow.IsVisible)
-            {
                 return;
-            }
 
             var tradingItems = GetItemsInTradingWindow(tradingWindow);
             var ourData = new RenameLater
@@ -80,8 +78,11 @@ namespace Tradie
                 Ascending = Settings.TheirItemsAscending
             };
 
-            DrawCurrency(ourData);
-            DrawCurrency(theirData);
+            if (ourData.Items.Any())
+                 DrawCurrency(ourData);
+
+            if (theirData.Items.Any())
+                DrawCurrency(theirData);
         }
 
         private void DrawCurrency(RenameLater data)
@@ -98,7 +99,10 @@ namespace Tradie
                       Graphics.MeasureText(data.Spacing + "x " + maxCount, data.TextSize).Width
                     : -data.ImageSize - data.Spacing -
                       Graphics.MeasureText(data.Spacing + "x " + maxCount, data.TextSize).Width,
-                data.Ascending ? -data.ImageSize * data.Items.Count() : data.ImageSize * data.Items.Count());
+                data.Ascending
+                    ? -data.ImageSize * data.Items.Count()
+                    : data.ImageSize * data.Items.Count()
+            );
 
             Graphics.DrawBox(background, newColor);
             foreach (var ourItem in data.Items)
@@ -203,14 +207,12 @@ namespace Tradie
                 var found = false;
 
                 foreach (var item in items)
-                {
                     if (item.ItemName.Equals(name))
                     {
                         item.Amount += amount;
                         found = true;
                         break;
                     }
-                }
 
                 if (!found)
                 {
@@ -237,9 +239,7 @@ namespace Tradie
             var fullPath = $"{PluginDirectory}\\images\\{metadataPath}";
 
             if (File.Exists(fullPath))
-            {
                 return fullPath;
-            }
 
             var path = fullPath.Substring(0, fullPath.LastIndexOf('\\'));
             Directory.CreateDirectory(path);
