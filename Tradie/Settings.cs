@@ -1,4 +1,5 @@
 ﻿using PoeHUD.Hud.Settings;
+using PoeHUD.Plugins;
 
 namespace Tradie
 {

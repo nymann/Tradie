@@ -30,24 +30,34 @@ namespace Tradie
             var ourItems = GetItemObjects(tradingItems.ourItems);
             var theirItems = GetItemObjects(tradingItems.theirItems);
 
-            DisplayTradeCurrency(ourItems, new Vector2(800, 800));
-            DisplayTradeCurrency(theirItems, new Vector2(200, 200));
+            DisplayTradeCurrency(ourItems, tradingWindow.GetClientRect().BottomRight);
+            DisplayTradeCurrency(theirItems, tradingWindow.GetClientRect().TopLeft, false);
         }
 
-        private void DisplayTradeCurrency(IEnumerable<Item> items, Vector2 startLocation, bool ourItems = true)
+        private void DisplayTradeCurrency(List<Item> items, Vector2 startLocation, bool ourItems = true)
         {
             var counter = 0;
+            var width = 40;
+            var height = 40;
+            var fontSize = width - 2;
+            var x = startLocation.X;
+
+            // draw black box
+            var boxY = ourItems ? startLocation.Y - (items.Count * height) : startLocation.Y + height;
+            var boxHeight = height * items.Count;
+            var boxWidth = fontSize * 3;
+            var boxRec = new RectangleF(x - width, boxY, boxWidth, boxHeight);
+            Graphics.DrawBox(boxRec, new Color(new Vector4(0, 0, 0, 0.8f)));
+
+
             foreach (var item in items)
             {
                 counter++;
-                var width = 20;
-                var height = 20;
-                var fontSize = width;
-                var x = startLocation.X;
+                
                 var y = ourItems ? startLocation.Y - (counter * height) : startLocation.Y + (counter * height);
                 var rec = new RectangleF(x - width, y, width, height);
 
-                var text = $"x{item.Amount}";
+                var text = $" {item.Amount}";
                 if (!DrawImage(item.Path, rec))
                 {
                     text += item.ItemName;
@@ -113,7 +123,7 @@ namespace Tradie
             return (ourItems, theirItems);
         }
 
-        private IEnumerable<Item> GetItemObjects(IEnumerable<NormalInventoryItem> normalInventoryItems)
+        private List<Item> GetItemObjects(IEnumerable<NormalInventoryItem> normalInventoryItems)
         {
             var items = new List<Item>();
 
