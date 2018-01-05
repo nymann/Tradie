@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using PoeHUD.Hud.Menu;
 using PoeHUD.Plugins;
 using PoeHUD.Poe;
 using PoeHUD.Poe.Components;
 using PoeHUD.Poe.Elements;
 using SharpDX;
+using SharpDX.Direct3D9;
 
 namespace Tradie
 {
@@ -18,43 +20,122 @@ namespace Tradie
             PluginName = "Tradie";
         }
 
+        public override void InitialiseMenu(MenuItem mainMenu)
+        {
+            base.InitialiseMenu(mainMenu);
+            var rootMenu = PluginSettingsRootMenu;
+            MenuWrapper.AddMenu(rootMenu, "Image Size", Settings.ImageSize);
+            MenuWrapper.AddMenu(rootMenu, "Text Size", Settings.TextSize);
+            var yourItems = MenuWrapper.AddMenu(rootMenu, "Your Trade Items");
+            MenuWrapper.AddMenu(yourItems, "Ascending Order", Settings.YourItemsAscending);
+            MenuWrapper.AddMenu(yourItems, "Currency Before Or After", Settings.YourItemsImageLeftOrRight,
+                "On: <Currency> x<Amount>\nOff: <Amount>x <Currency>");
+            MenuWrapper.AddMenu(yourItems, "Text Color", Settings.YourItemTextColor);
+            var yourItemLocation = MenuWrapper.AddMenu(yourItems, "Starting Location");
+            MenuWrapper.AddMenu(yourItemLocation, "X", Settings.YourItemStartingLocationX);
+            MenuWrapper.AddMenu(yourItemLocation, "Y", Settings.YourItemStartingLocationY);
+
+            var theirItems = MenuWrapper.AddMenu(rootMenu, "Their Trade Items");
+            MenuWrapper.AddMenu(theirItems, "Ascending Order", Settings.TheirItemsAscending);
+            MenuWrapper.AddMenu(theirItems, "Currency Before Or After", Settings.TheirItemsImageLeftOrRight,
+                "On: <Currency> x<Amount>\nOff: <Amount>x <Currency>");
+            MenuWrapper.AddMenu(theirItems, "Text Color", Settings.TheirItemTextColor);
+            var theirItemLocation = MenuWrapper.AddMenu(theirItems, "Starting Location");
+            MenuWrapper.AddMenu(theirItemLocation, "X", Settings.TheirItemStartingLocationX);
+            MenuWrapper.AddMenu(theirItemLocation, "Y", Settings.TheirItemStartingLocationY);
+        }
+
         public override void Render()
         {
             var tradingWindow = GetTradingWindow();
             if (tradingWindow == null || !tradingWindow.IsVisible)
-            {
                 return;
-            }
 
             var tradingItems = GetItemsInTradingWindow(tradingWindow);
-            var ourItems = GetItemObjects(tradingItems.ourItems);
-            var theirItems = GetItemObjects(tradingItems.theirItems);
+            var ourData = new RenameLater
+            {
+                Items = GetItemObjects(tradingItems.ourItems),
+                X = Settings.YourItemStartingLocationX,
+                Y = Settings.YourItemStartingLocationY,
+                TextSize = Settings.TextSize,
+                TextColor = Settings.YourItemTextColor,
+                ImageSize = Settings.ImageSize,
+                Spacing = 5,
+                LeftAlignment = Settings.YourItemsImageLeftOrRight,
+                Ascending = Settings.YourItemsAscending
+            };
 
-            DisplayTradeCurrency(ourItems, new Vector2(800, 800));
-            DisplayTradeCurrency(theirItems, new Vector2(200, 200));
+            var theirData = new RenameLater
+            {
+                Items = GetItemObjects(tradingItems.theirItems),
+                X = Settings.TheirItemStartingLocationX,
+                Y = Settings.TheirItemStartingLocationY,
+                TextSize = Settings.TextSize,
+                TextColor = Settings.TheirItemTextColor,
+                ImageSize = Settings.ImageSize,
+                Spacing = 5,
+                LeftAlignment = Settings.TheirItemsImageLeftOrRight,
+                Ascending = Settings.TheirItemsAscending
+            };
+
+            if (ourData.Items.Any())
+                 DrawCurrency(ourData);
+
+            if (theirData.Items.Any())
+                DrawCurrency(theirData);
         }
 
-        private void DisplayTradeCurrency(IEnumerable<Item> items, Vector2 startLocation, bool ourItems = true)
+        private void DrawCurrency(RenameLater data)
         {
             var counter = 0;
-            foreach (var item in items)
+            var newColor = Color.Black;
+            newColor.A = 230;
+            var maxCount = data.Items.Max(i => i.Amount);
+
+            var background = new RectangleF(data.LeftAlignment ? data.X : data.X + data.ImageSize,
+                data.Y,
+                data.LeftAlignment
+                    ? +data.ImageSize + data.Spacing +
+                      Graphics.MeasureText(data.Spacing + "x " + maxCount, data.TextSize).Width
+                    : -data.ImageSize - data.Spacing -
+                      Graphics.MeasureText(data.Spacing + "x " + maxCount, data.TextSize).Width,
+                data.Ascending
+                    ? -data.ImageSize * data.Items.Count()
+                    : data.ImageSize * data.Items.Count()
+            );
+
+            Graphics.DrawBox(background, newColor);
+            foreach (var ourItem in data.Items)
             {
                 counter++;
-                var width = 20;
-                var height = 20;
-                var fontSize = width;
-                var x = startLocation.X;
-                var y = ourItems ? startLocation.Y - (counter * height) : startLocation.Y + (counter * height);
-                var rec = new RectangleF(x - width, y, width, height);
+                var imageBox = new RectangleF(data.X,
+                    data.Ascending
+                        ? data.Y - counter * data.ImageSize
+                        : data.Y - data.ImageSize + counter * data.ImageSize, data.ImageSize, data.ImageSize);
 
-                var text = $"x{item.Amount}";
-                if (!DrawImage(item.Path, rec))
-                {
-                    text += item.ItemName;
-                }
-                Graphics.DrawText(text, fontSize, new Vector2(x, y),
-                    Color.White);
+
+                DrawImage(ourItem.Path, imageBox);
+
+                Graphics.DrawText(data.LeftAlignment ? $" x {ourItem.Amount}" : $"{ourItem.Amount} x ", data.TextSize,
+                    new Vector2(data.LeftAlignment ? data.X + data.ImageSize + data.Spacing : data.X - data.Spacing * 2,
+                        imageBox.Center.Y - data.TextSize / 2 - 3),
+                    Settings.YourItemTextColor,
+                    data.LeftAlignment ? FontDrawFlags.Left : FontDrawFlags.Right);
             }
+        }
+
+        private bool DrawImage(string path, RectangleF rec)
+        {
+            try
+            {
+                Graphics.DrawPluginImage(path, rec);
+            }
+            catch
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private Element GetTradingWindow()
@@ -126,14 +207,12 @@ namespace Tradie
                 var found = false;
 
                 foreach (var item in items)
-                {
                     if (item.ItemName.Equals(name))
                     {
                         item.Amount += amount;
                         found = true;
                         break;
                     }
-                }
 
                 if (!found)
                 {
@@ -152,20 +231,6 @@ namespace Tradie
             return items;
         }
 
-        private bool DrawImage(string path, RectangleF rec)
-        {
-            try
-            {
-                Graphics.DrawPluginImage(path, rec);
-            }
-            catch
-            {
-                return false;
-            }
-
-            return true;
-        }
-
         private string GetImagePath(string metadata)
         {
             metadata = metadata.Replace(".dds", ".png");
@@ -174,9 +239,7 @@ namespace Tradie
             var fullPath = $"{PluginDirectory}\\images\\{metadataPath}";
 
             if (File.Exists(fullPath))
-            {
                 return fullPath;
-            }
 
             var path = fullPath.Substring(0, fullPath.LastIndexOf('\\'));
             Directory.CreateDirectory(path);
