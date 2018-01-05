@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Net;
 using PoeHUD.Plugins;
 using PoeHUD.Poe;
 using PoeHUD.Poe.Components;
@@ -20,7 +20,6 @@ namespace Tradie
 
         public override void Render()
         {
-
             var tradingWindow = GetTradingWindow();
             if (tradingWindow == null || !tradingWindow.IsVisible)
             {
@@ -28,31 +27,33 @@ namespace Tradie
             }
 
             var tradingItems = GetItemsInTradingWindow(tradingWindow);
-
-            foreach (var theirItem in tradingItems.theirItems)
-            {
-                Graphics.DrawFrame(theirItem.GetClientRect(), 2, Color.Red);
-            }
-
-            foreach (var ourItem in tradingItems.ourItems)
-            {
-                Graphics.DrawFrame(ourItem.GetClientRect(), 2, Color.Blue);
-            }
-
             var ourItems = GetItemObjects(tradingItems.ourItems);
             var theirItems = GetItemObjects(tradingItems.theirItems);
-            var counter = 0;
-            foreach (var ourItem in ourItems)
-            {
-                counter++;
-                Graphics.DrawText($"{ourItem.ItemName}: {ourItem.Amount}", 20, new Vector2(500, 600 + (counter * 22)), Color.Blue);
-            }
 
-            counter = 0;
-            foreach (var theirItem in theirItems)
+            DisplayTradeCurrency(ourItems, new Vector2(800, 800));
+            DisplayTradeCurrency(theirItems, new Vector2(200, 200));
+        }
+
+        private void DisplayTradeCurrency(IEnumerable<Item> items, Vector2 startLocation, bool ourItems = true)
+        {
+            var counter = 0;
+            foreach (var item in items)
             {
                 counter++;
-                Graphics.DrawText($"{theirItem.ItemName}: {theirItem.Amount}", 20, new Vector2(500, 200 + (counter * 22)), Color.Red);
+                var width = 20;
+                var height = 20;
+                var fontSize = width;
+                var x = startLocation.X;
+                var y = ourItems ? startLocation.Y - (counter * height) : startLocation.Y + (counter * height);
+                var rec = new RectangleF(x - width, y, width, height);
+
+                var text = $"x{item.Amount}";
+                if (!DrawImage(item.Path, rec))
+                {
+                    text += item.ItemName;
+                }
+                Graphics.DrawText(text, fontSize, new Vector2(x, y),
+                    Color.White);
             }
         }
 
@@ -112,7 +113,7 @@ namespace Tradie
             return (ourItems, theirItems);
         }
 
-        private List<Item> GetItemObjects(IEnumerable<NormalInventoryItem> normalInventoryItems)
+        private IEnumerable<Item> GetItemObjects(IEnumerable<NormalInventoryItem> normalInventoryItems)
         {
             var items = new List<Item>();
 
@@ -136,11 +137,56 @@ namespace Tradie
 
                 if (!found)
                 {
-                    items.Add(new Item(name, amount));
+                    var metaData = normalInventoryItem.Item.GetComponent<RenderItem>().ResourcePath;
+                    if (metaData.Equals(""))
+                    {
+                        LogMessage($"Meta data of {name} is empty, skipping!", 5);
+                        continue;
+                    }
+
+                    var path = GetImagePath(metaData);
+                    items.Add(new Item(name, amount, path));
                 }
             }
 
             return items;
+        }
+
+        private bool DrawImage(string path, RectangleF rec)
+        {
+            try
+            {
+                Graphics.DrawPluginImage(path, rec);
+            }
+            catch
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private string GetImagePath(string metadata)
+        {
+            metadata = metadata.Replace(".dds", ".png");
+            var url = $"http://webcdn.pathofexile.com/image/{metadata}";
+            var metadataPath = metadata.Replace('/', '\\');
+            var fullPath = $"{PluginDirectory}\\images\\{metadataPath}";
+
+            if (File.Exists(fullPath))
+            {
+                return fullPath;
+            }
+
+            var path = fullPath.Substring(0, fullPath.LastIndexOf('\\'));
+            Directory.CreateDirectory(path);
+
+            using (var client = new WebClient())
+            {
+                client.DownloadFile(new Uri(url), fullPath);
+            }
+
+            return fullPath;
         }
     }
 }
