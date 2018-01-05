@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using PoeHUD.Plugins;
 using PoeHUD.Poe;
+using PoeHUD.Poe.Components;
 using PoeHUD.Poe.Elements;
 using SharpDX;
 
@@ -37,6 +38,22 @@ namespace Tradie
             {
                 Graphics.DrawFrame(ourItem.GetClientRect(), 2, Color.Blue);
             }
+
+            var ourItems = GetItemObjects(tradingItems.ourItems);
+            var theirItems = GetItemObjects(tradingItems.theirItems);
+            var counter = 0;
+            foreach (var ourItem in ourItems)
+            {
+                counter++;
+                Graphics.DrawText($"{ourItem.ItemName}: {ourItem.Amount}", 20, new Vector2(500, 600 + (counter * 22)), Color.Blue);
+            }
+
+            counter = 0;
+            foreach (var theirItem in theirItems)
+            {
+                counter++;
+                Graphics.DrawText($"{theirItem.ItemName}: {theirItem.Amount}", 20, new Vector2(500, 200 + (counter * 22)), Color.Red);
+            }
         }
 
         private Element GetTradingWindow()
@@ -57,7 +74,8 @@ namespace Tradie
             }
         }
 
-        private (List<NormalInventoryItem> ourItems, List<NormalInventoryItem> theirItems) GetItemsInTradingWindow(Element tradingWindow)
+        private (List<NormalInventoryItem> ourItems, List<NormalInventoryItem> theirItems) GetItemsInTradingWindow(
+            Element tradingWindow)
         {
             var ourItemsElement = tradingWindow.Children[0];
             var theirItemsElement = tradingWindow.Children[1];
@@ -65,7 +83,8 @@ namespace Tradie
             var ourItems = new List<NormalInventoryItem>();
             var theirItems = new List<NormalInventoryItem>();
 
-            // We are skipping the first, since it's a invisible uiElement that we don't need.
+            // We are skipping the first, since it's a Element ("Place items you want to trade here") that we don't need.
+            // 
             foreach (var ourElement in ourItemsElement.Children.Skip(1))
             {
                 var normalInventoryItem = ourElement.AsObject<NormalInventoryItem>();
@@ -91,6 +110,37 @@ namespace Tradie
             }
 
             return (ourItems, theirItems);
+        }
+
+        private List<Item> GetItemObjects(IEnumerable<NormalInventoryItem> normalInventoryItems)
+        {
+            var items = new List<Item>();
+
+            foreach (var normalInventoryItem in normalInventoryItems)
+            {
+                var baseItemType = GameController.Files.BaseItemTypes.Translate(normalInventoryItem.Item.Path);
+                var stack = normalInventoryItem.Item.GetComponent<Stack>();
+                var amount = stack?.Info == null ? 1 : stack.Size;
+                var name = baseItemType.BaseName;
+                var found = false;
+
+                foreach (var item in items)
+                {
+                    if (item.ItemName.Equals(name))
+                    {
+                        item.Amount += amount;
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found)
+                {
+                    items.Add(new Item(name, amount));
+                }
+            }
+
+            return items;
         }
     }
 }
