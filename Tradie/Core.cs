@@ -29,15 +29,17 @@ namespace Tradie
             MenuWrapper.AddMenu(rootMenu, "Image Size", Settings.ImageSize);
             MenuWrapper.AddMenu(rootMenu, "Text Size", Settings.TextSize);
             var yourItems = MenuWrapper.AddMenu(rootMenu, "Your Trade Items");
-            MenuWrapper.AddMenu(yourItems, "Text Color", Settings.YourItemTextColor);
+            MenuWrapper.AddMenu(yourItems, "Ascending Order", Settings.YourItemsAscending);
             MenuWrapper.AddMenu(yourItems, "Currency Before Or After", Settings.YourItemsImageLeftOrRight, "On: <Currency> x<Amount>\nOff: <Amount>x <Currency>");
+            MenuWrapper.AddMenu(yourItems, "Text Color", Settings.YourItemTextColor);
             var yourItemLocation = MenuWrapper.AddMenu(yourItems, "Starting Location");
             MenuWrapper.AddMenu(yourItemLocation, "X", Settings.YourItemStartingLocationX);
             MenuWrapper.AddMenu(yourItemLocation, "Y", Settings.YourItemStartingLocationY);
 
             var theirItems = MenuWrapper.AddMenu(rootMenu, "Their Trade Items");
-            MenuWrapper.AddMenu(theirItems, "Text Color", Settings.TheirItemTextColor);
+            MenuWrapper.AddMenu(theirItems, "Ascending Order", Settings.TheirItemsAscending);
             MenuWrapper.AddMenu(theirItems, "Currency Before Or After", Settings.TheirItemsImageLeftOrRight, "On: <Currency> x<Amount>\nOff: <Amount>x <Currency>");
+            MenuWrapper.AddMenu(theirItems, "Text Color", Settings.TheirItemTextColor);
             var theirItemLocation = MenuWrapper.AddMenu(theirItems, "Starting Location");
             MenuWrapper.AddMenu(theirItemLocation, "X", Settings.TheirItemStartingLocationX);
             MenuWrapper.AddMenu(theirItemLocation, "Y", Settings.TheirItemStartingLocationY);
@@ -52,134 +54,69 @@ namespace Tradie
             }
 
             var tradingItems = GetItemsInTradingWindow(tradingWindow);
+            var ourData = new RenameLater
+            {
+                Items = GetItemObjects(tradingItems.ourItems),
+                X = Settings.YourItemStartingLocationX,
+                Y = Settings.YourItemStartingLocationY,
+                TextSize = Settings.TextSize,
+                TextColor = Settings.YourItemTextColor,
+                ImageSize = Settings.ImageSize,
+                Spacing = 5,
+                LeftAlignment = Settings.YourItemsImageLeftOrRight,
+                Ascending = Settings.YourItemsAscending
+            };
 
-            var ourItems = GetItemObjects(tradingItems.ourItems);
-            var theirItems = GetItemObjects(tradingItems.theirItems);
-            DrawOurCurrencyList(ourItems, Settings.YourItemsImageLeftOrRight);
-            DraTheirCurrencyList(theirItems, Settings.TheirItemsImageLeftOrRight);
+            var theirData = new RenameLater
+            {
+                Items = GetItemObjects(tradingItems.theirItems),
+                X = Settings.TheirItemStartingLocationX,
+                Y = Settings.TheirItemStartingLocationY,
+                TextSize = Settings.TextSize,
+                TextColor = Settings.TheirItemTextColor,
+                ImageSize = Settings.ImageSize,
+                Spacing = 5,
+                LeftAlignment = Settings.TheirItemsImageLeftOrRight,
+                Ascending = Settings.TheirItemsAscending
+            };
+
+            DrawCurrency(ourData);
+            DrawCurrency(theirData);
         }
 
-        private void DrawOurCurrencyList(IEnumerable<Item> ourItems, bool LeftOrRight)
+        private void DrawCurrency(RenameLater data)
         {
-            var textSize = Settings.TextSize;
-            var imageSize = Settings.ImageSize;
-            const int extraBit = 5;
             var counter = 0;
-
             var newColor = Color.Black;
             newColor.A = 230;
+            var maxCount = data.Items.Max(i => i.Amount);
 
-            var highestCurrencyCount = ourItems.Select(ourItem => ourItem.Amount).Concat(new[] {0}).Max();
-            if (LeftOrRight)
+            var background = new RectangleF(data.LeftAlignment ? data.X : data.X + data.ImageSize,
+                data.Y,
+                data.LeftAlignment
+                    ? +data.ImageSize + data.Spacing +
+                      Graphics.MeasureText(data.Spacing + "x " + maxCount, data.TextSize).Width
+                    : -data.ImageSize - data.Spacing -
+                      Graphics.MeasureText(data.Spacing + "x " + maxCount, data.TextSize).Width,
+                data.Ascending ? -data.ImageSize * data.Items.Count() : data.ImageSize * data.Items.Count());
+
+            Graphics.DrawBox(background, newColor);
+            foreach (var ourItem in data.Items)
             {
-                var background = new RectangleF(Settings.YourItemStartingLocationX,
-                    Settings.YourItemStartingLocationY,
-                    +imageSize + extraBit +
-                    Graphics.MeasureText(extraBit + "x " + highestCurrencyCount, textSize).Width,
-                    -imageSize * ourItems.Count());
-
-                Graphics.DrawBox(background, newColor);
-                foreach (var ourItem in ourItems)
-                {
-                    counter++;
-                    var imageBox = new RectangleF(Settings.YourItemStartingLocationX,
-                        Settings.YourItemStartingLocationY - counter * imageSize, imageSize, imageSize);
+                counter++;
+                var imageBox = new RectangleF(data.X,
+                    data.Ascending
+                        ? data.Y - counter * data.ImageSize
+                        : data.Y - data.ImageSize + counter * data.ImageSize, data.ImageSize, data.ImageSize);
 
 
-                    DrawImage(ourItem.Path, imageBox);
+                DrawImage(ourItem.Path, imageBox);
 
-                    Graphics.DrawText($" x {ourItem.Amount}", textSize,
-                        new Vector2(Settings.YourItemStartingLocationX + imageSize + extraBit,
-                            imageBox.Center.Y - textSize / 2 - 3),
-                        Settings.YourItemTextColor);
-                }
-            }
-            else
-            {
-                var background = new RectangleF(Settings.YourItemStartingLocationX + imageSize,
-                    Settings.YourItemStartingLocationY,
-                    -imageSize - extraBit -
-                    Graphics.MeasureText(extraBit + "x " + highestCurrencyCount, textSize).Width,
-                    -imageSize * ourItems.Count());
-
-                Graphics.DrawBox(background, newColor);
-                foreach (var ourItem in ourItems)
-                {
-                    counter++;
-                    var imageBox = new RectangleF(Settings.YourItemStartingLocationX,
-                        Settings.YourItemStartingLocationY - counter * imageSize, imageSize, imageSize);
-
-
-                    DrawImage(ourItem.Path, imageBox);
-
-                    Graphics.DrawText($"{ourItem.Amount} x ", textSize,
-                        new Vector2(Settings.YourItemStartingLocationX - extraBit * 2,
-                            imageBox.Center.Y - textSize / 2 - 3),
-                        Settings.YourItemTextColor,
-                        FontDrawFlags.Right);
-                }
-            }
-        }
-
-        private void DraTheirCurrencyList(IEnumerable<Item> theirItems, bool LeftOrRight)
-        {
-            var textSize = Settings.TextSize;
-            var imageSize = Settings.ImageSize;
-            const int extraBit = 5;
-            var counter = 0;
-
-            var newColor = Color.Black;
-            newColor.A = 230;
-
-            var highestCurrencyCount = theirItems.Select(ourItem => ourItem.Amount).Concat(new[] {0}).Max();
-            if (LeftOrRight)
-            {
-                var background = new RectangleF(Settings.TheirItemStartingLocationX,
-                    Settings.TheirItemStartingLocationY,
-                    +imageSize + extraBit +
-                    Graphics.MeasureText(extraBit + "x " + highestCurrencyCount, textSize).Width,
-                    imageSize * theirItems.Count());
-
-                Graphics.DrawBox(background, newColor);
-                foreach (var ourItem in theirItems)
-                {
-                    counter++;
-                    var imageBox = new RectangleF(Settings.TheirItemStartingLocationX,
-                        (Settings.TheirItemStartingLocationY - imageSize) + (counter * imageSize), imageSize, imageSize);
-
-
-                    DrawImage(ourItem.Path, imageBox);
-
-                    Graphics.DrawText($" x {ourItem.Amount}", textSize,
-                        new Vector2(Settings.TheirItemStartingLocationX + imageSize + extraBit,
-                            imageBox.Center.Y - textSize / 2 - 3),
-                        Settings.TheirItemTextColor);
-                }
-            }
-            else
-            {
-                var background = new RectangleF(Settings.TheirItemStartingLocationX + imageSize,
-                    Settings.TheirItemStartingLocationY,
-                    -imageSize - extraBit -
-                    Graphics.MeasureText(extraBit + "x " + highestCurrencyCount, textSize).Width,
-                    imageSize * theirItems.Count());
-
-                Graphics.DrawBox(background, newColor);
-                foreach (var ourItem in theirItems)
-                {
-                    counter++;
-                    var imageBox = new RectangleF(Settings.TheirItemStartingLocationX,
-                        (Settings.TheirItemStartingLocationY - imageSize) + (counter * imageSize), imageSize, imageSize);
-
-
-                    DrawImage(ourItem.Path, imageBox);
-
-                    Graphics.DrawText($"{ourItem.Amount} x ", textSize,
-                        new Vector2(Settings.TheirItemStartingLocationX - extraBit * 2,
-                            imageBox.Center.Y - textSize / 2 - 3),
-                        Settings.TheirItemTextColor,
-                        FontDrawFlags.Right);
-                }
+                Graphics.DrawText(data.LeftAlignment ? $" x {ourItem.Amount}" : $"{ourItem.Amount} x ", data.TextSize,
+                    new Vector2(data.LeftAlignment ? data.X + data.ImageSize + data.Spacing : data.X - data.Spacing * 2,
+                        imageBox.Center.Y - data.TextSize / 2 - 3),
+                    Settings.YourItemTextColor,
+                    data.LeftAlignment ? FontDrawFlags.Left : FontDrawFlags.Right);
             }
         }
 
