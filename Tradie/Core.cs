@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using PoeHUD.Hud.Menu;
@@ -27,21 +29,22 @@ namespace Tradie
             MenuWrapper.AddMenu(rootMenu, "Image Size", Settings.ImageSize);
             MenuWrapper.AddMenu(rootMenu, "Text Size", Settings.TextSize);
             var yourItems = MenuWrapper.AddMenu(rootMenu, "Your Trade Items");
+            MenuWrapper.AddMenu(yourItems, "Text Color", Settings.YourItemTextColor);
+            MenuWrapper.AddMenu(yourItems, "Currency Before Or After", Settings.YourItemsImageLeftOrRight, "On: <Currency> x<Amount>\nOff: <Amount>x <Currency>");
             var yourItemLocation = MenuWrapper.AddMenu(yourItems, "Starting Location");
             MenuWrapper.AddMenu(yourItemLocation, "X", Settings.YourItemStartingLocationX);
             MenuWrapper.AddMenu(yourItemLocation, "Y", Settings.YourItemStartingLocationY);
-            MenuWrapper.AddMenu(yourItems, "Currency Before Or After", Settings.YourItemsImageLeftOrRight, "On: <Currency> x<Amount>\n Off: <Amount>x <Currency>");
 
             var theirItems = MenuWrapper.AddMenu(rootMenu, "Their Trade Items");
+            MenuWrapper.AddMenu(theirItems, "Text Color", Settings.TheirItemTextColor);
+            MenuWrapper.AddMenu(theirItems, "Currency Before Or After", Settings.TheirItemsImageLeftOrRight, "On: <Currency> x<Amount>\nOff: <Amount>x <Currency>");
             var theirItemLocation = MenuWrapper.AddMenu(theirItems, "Starting Location");
             MenuWrapper.AddMenu(theirItemLocation, "X", Settings.TheirItemStartingLocationX);
             MenuWrapper.AddMenu(theirItemLocation, "Y", Settings.TheirItemStartingLocationY);
-            MenuWrapper.AddMenu(theirItems, "Currency Before Or After", Settings.TheirItemsImageLeftOrRight, "On: <Currency> x<Amount>\n Off: <Amount>x <Currency>");
         }
 
         public override void Render()
         {
-
             var tradingWindow = GetTradingWindow();
             if (tradingWindow == null || !tradingWindow.IsVisible)
             {
@@ -50,23 +53,13 @@ namespace Tradie
 
             var tradingItems = GetItemsInTradingWindow(tradingWindow);
 
-            foreach (var theirItem in tradingItems.theirItems)
-            {
-                Graphics.DrawFrame(theirItem.GetClientRect(), 2, Color.Red);
-            }
-
-            foreach (var ourItem in tradingItems.ourItems)
-            {
-                Graphics.DrawFrame(ourItem.GetClientRect(), 2, Color.Blue);
-            }
-
             var ourItems = GetItemObjects(tradingItems.ourItems);
             var theirItems = GetItemObjects(tradingItems.theirItems);
             DrawOurCurrencyList(ourItems, Settings.YourItemsImageLeftOrRight);
             DraTheirCurrencyList(theirItems, Settings.TheirItemsImageLeftOrRight);
         }
 
-        private void DrawOurCurrencyList(List<Item> ourItems, bool LeftOrRight)
+        private void DrawOurCurrencyList(IEnumerable<Item> ourItems, bool LeftOrRight)
         {
             var textSize = Settings.TextSize;
             var imageSize = Settings.ImageSize;
@@ -83,31 +76,7 @@ namespace Tradie
                     Settings.YourItemStartingLocationY,
                     +imageSize + extraBit +
                     Graphics.MeasureText(extraBit + "x " + highestCurrencyCount, textSize).Width,
-                    -imageSize * ourItems.Count);
-
-                Graphics.DrawBox(background, newColor);
-                foreach (var ourItem in ourItems)
-                {
-                    counter++;
-                    var image = new RectangleF(Settings.YourItemStartingLocationX,
-                        Settings.YourItemStartingLocationY - counter * imageSize, imageSize, imageSize);
-
-
-                    Graphics.DrawPluginImage($@"{PluginDirectory}\images\CurrencyAddModToRare.png", image);
-
-                    Graphics.DrawText($" x {ourItem.Amount}", textSize,
-                        new Vector2(Settings.YourItemStartingLocationX + imageSize + extraBit,
-                            image.Center.Y - textSize / 2 - 3),
-                        Color.Blue);
-                }
-            }
-            else
-            {
-                var background = new RectangleF(Settings.YourItemStartingLocationX + imageSize,
-                    Settings.YourItemStartingLocationY,
-                    -imageSize - extraBit -
-                    Graphics.MeasureText(extraBit + "x " + highestCurrencyCount, textSize).Width,
-                    -imageSize * ourItems.Count);
+                    -imageSize * ourItems.Count());
 
                 Graphics.DrawBox(background, newColor);
                 foreach (var ourItem in ourItems)
@@ -117,18 +86,42 @@ namespace Tradie
                         Settings.YourItemStartingLocationY - counter * imageSize, imageSize, imageSize);
 
 
-                    Graphics.DrawPluginImage($@"{PluginDirectory}\images\CurrencyAddModToRare.png", imageBox);
+                    DrawImage(ourItem.Path, imageBox);
+
+                    Graphics.DrawText($" x {ourItem.Amount}", textSize,
+                        new Vector2(Settings.YourItemStartingLocationX + imageSize + extraBit,
+                            imageBox.Center.Y - textSize / 2 - 3),
+                        Settings.YourItemTextColor);
+                }
+            }
+            else
+            {
+                var background = new RectangleF(Settings.YourItemStartingLocationX + imageSize,
+                    Settings.YourItemStartingLocationY,
+                    -imageSize - extraBit -
+                    Graphics.MeasureText(extraBit + "x " + highestCurrencyCount, textSize).Width,
+                    -imageSize * ourItems.Count());
+
+                Graphics.DrawBox(background, newColor);
+                foreach (var ourItem in ourItems)
+                {
+                    counter++;
+                    var imageBox = new RectangleF(Settings.YourItemStartingLocationX,
+                        Settings.YourItemStartingLocationY - counter * imageSize, imageSize, imageSize);
+
+
+                    DrawImage(ourItem.Path, imageBox);
 
                     Graphics.DrawText($"{ourItem.Amount} x ", textSize,
                         new Vector2(Settings.YourItemStartingLocationX - extraBit * 2,
                             imageBox.Center.Y - textSize / 2 - 3),
-                        Color.Blue,
+                        Settings.YourItemTextColor,
                         FontDrawFlags.Right);
                 }
             }
         }
 
-        private void DraTheirCurrencyList(List<Item> theirItems, bool LeftOrRight)
+        private void DraTheirCurrencyList(IEnumerable<Item> theirItems, bool LeftOrRight)
         {
             var textSize = Settings.TextSize;
             var imageSize = Settings.ImageSize;
@@ -145,7 +138,7 @@ namespace Tradie
                     Settings.TheirItemStartingLocationY,
                     +imageSize + extraBit +
                     Graphics.MeasureText(extraBit + "x " + highestCurrencyCount, textSize).Width,
-                    imageSize * theirItems.Count);
+                    imageSize * theirItems.Count());
 
                 Graphics.DrawBox(background, newColor);
                 foreach (var ourItem in theirItems)
@@ -155,12 +148,12 @@ namespace Tradie
                         (Settings.TheirItemStartingLocationY - imageSize) + (counter * imageSize), imageSize, imageSize);
 
 
-                    Graphics.DrawPluginImage($@"{PluginDirectory}\images\CurrencyAddModToRare.png", imageBox);
+                    DrawImage(ourItem.Path, imageBox);
 
                     Graphics.DrawText($" x {ourItem.Amount}", textSize,
                         new Vector2(Settings.TheirItemStartingLocationX + imageSize + extraBit,
                             imageBox.Center.Y - textSize / 2 - 3),
-                        Color.Red);
+                        Settings.TheirItemTextColor);
                 }
             }
             else
@@ -169,7 +162,7 @@ namespace Tradie
                     Settings.TheirItemStartingLocationY,
                     -imageSize - extraBit -
                     Graphics.MeasureText(extraBit + "x " + highestCurrencyCount, textSize).Width,
-                    imageSize * theirItems.Count);
+                    imageSize * theirItems.Count());
 
                 Graphics.DrawBox(background, newColor);
                 foreach (var ourItem in theirItems)
@@ -179,15 +172,29 @@ namespace Tradie
                         (Settings.TheirItemStartingLocationY - imageSize) + (counter * imageSize), imageSize, imageSize);
 
 
-                    Graphics.DrawPluginImage($@"{PluginDirectory}\images\CurrencyAddModToRare.png", imageBox);
+                    DrawImage(ourItem.Path, imageBox);
 
                     Graphics.DrawText($"{ourItem.Amount} x ", textSize,
                         new Vector2(Settings.TheirItemStartingLocationX - extraBit * 2,
                             imageBox.Center.Y - textSize / 2 - 3),
-                        Color.Red,
+                        Settings.TheirItemTextColor,
                         FontDrawFlags.Right);
                 }
             }
+        }
+
+        private bool DrawImage(string path, RectangleF rec)
+        {
+            try
+            {
+                Graphics.DrawPluginImage(path, rec);
+            }
+            catch
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private Element GetTradingWindow()
@@ -246,7 +253,7 @@ namespace Tradie
             return (ourItems, theirItems);
         }
 
-        private List<Item> GetItemObjects(IEnumerable<NormalInventoryItem> normalInventoryItems)
+        private IEnumerable<Item> GetItemObjects(IEnumerable<NormalInventoryItem> normalInventoryItems)
         {
             var items = new List<Item>();
 
@@ -270,11 +277,42 @@ namespace Tradie
 
                 if (!found)
                 {
-                    items.Add(new Item(name, amount));
+                    var metaData = normalInventoryItem.Item.GetComponent<RenderItem>().ResourcePath;
+                    if (metaData.Equals(""))
+                    {
+                        LogMessage($"Meta data of {name} is empty, skipping!", 5);
+                        continue;
+                    }
+
+                    var path = GetImagePath(metaData);
+                    items.Add(new Item(name, amount, path));
                 }
             }
 
             return items;
+        }
+
+        private string GetImagePath(string metadata)
+        {
+            metadata = metadata.Replace(".dds", ".png");
+            var url = $"http://webcdn.pathofexile.com/image/{metadata}";
+            var metadataPath = metadata.Replace('/', '\\');
+            var fullPath = $"{PluginDirectory}\\images\\{metadataPath}";
+
+            if (File.Exists(fullPath))
+            {
+                return fullPath;
+            }
+
+            var path = fullPath.Substring(0, fullPath.LastIndexOf('\\'));
+            Directory.CreateDirectory(path);
+
+            using (var client = new WebClient())
+            {
+                client.DownloadFile(new Uri(url), fullPath);
+            }
+
+            return fullPath;
         }
     }
 }

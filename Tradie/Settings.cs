@@ -1,6 +1,7 @@
 ﻿using PoeHUD.Controllers;
 using PoeHUD.Hud.Settings;
 using PoeHUD.Plugins;
+using SharpDX;
 
 namespace Tradie
 {
@@ -15,10 +16,12 @@ namespace Tradie
 
             YourItemStartingLocationX = new RangeNode<int>(966, 0, (int)BasePlugin.API.GameController.Window.GetWindowRectangle().Width);
             YourItemStartingLocationY = new RangeNode<int>(863, 0, (int)BasePlugin.API.GameController.Window.GetWindowRectangle().Height);
+            YourItemTextColor = Color.LightBlue;
             YourItemsImageLeftOrRight = true;
 
             TheirItemStartingLocationX = new RangeNode<int>(966, 0, (int)BasePlugin.API.GameController.Window.GetWindowRectangle().Width);
             TheirItemStartingLocationY = new RangeNode<int>(863, 0, (int)BasePlugin.API.GameController.Window.GetWindowRectangle().Height);
+            TheirItemTextColor = Color.Red;
             TheirItemsImageLeftOrRight = false;
         }
         public RangeNode<int> ImageSize { get; set; }
@@ -26,10 +29,12 @@ namespace Tradie
 
         public RangeNode<int> YourItemStartingLocationX { get; set; }
         public RangeNode<int> YourItemStartingLocationY { get; set; }
+        public ColorNode YourItemTextColor { get; set; }
         public ToggleNode YourItemsImageLeftOrRight { get; set; }
 
         public RangeNode<int> TheirItemStartingLocationX { get; set; }
         public RangeNode<int> TheirItemStartingLocationY { get; set; }
+        public ColorNode TheirItemTextColor { get; set; }
         public ToggleNode TheirItemsImageLeftOrRight { get; set; }
     }
 }
