@@ -20,14 +20,15 @@ namespace Tradie
 
         }
 
-        public RenameLater(IEnumerable<Item> items, int x, int y, int textSize, int imageSize, int extraBit, Color textColor, bool leftAlignment, bool ascending)
+        public RenameLater(IEnumerable<Item> items, int x, int y, int textSize, int imageSize, int spacing,
+            Color textColor, bool leftAlignment, bool ascending)
         {
             Items = items;
             X = x;
             Y = y;
             TextSize = textSize;
             ImageSize = imageSize;
-            Spacing = extraBit;
+            Spacing = spacing;
             TextColor = textColor;
             LeftAlignment = leftAlignment;
             Ascending = ascending;

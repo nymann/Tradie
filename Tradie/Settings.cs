@@ -13,18 +13,19 @@ namespace Tradie
             TextSize = new RangeNode<int>(20, 1, 60);
 
 
-            YourItemStartingLocationX = new RangeNode<int>(966, 0, (int)BasePlugin.API.GameController.Window.GetWindowRectangle().Width);
-            YourItemStartingLocationY = new RangeNode<int>(863, 0, (int)BasePlugin.API.GameController.Window.GetWindowRectangle().Height);
+            YourItemStartingLocationX = new RangeNode<int>(966, 0, (int) BasePlugin.API.GameController.Window.GetWindowRectangle().Width);
+            YourItemStartingLocationY = new RangeNode<int>(863, 0, (int) BasePlugin.API.GameController.Window.GetWindowRectangle().Height);
             YourItemsAscending = true;
             YourItemTextColor = Color.LightBlue;
             YourItemsImageLeftOrRight = true;
 
-            TheirItemStartingLocationX = new RangeNode<int>(966, 0, (int)BasePlugin.API.GameController.Window.GetWindowRectangle().Width);
-            TheirItemStartingLocationY = new RangeNode<int>(863, 0, (int)BasePlugin.API.GameController.Window.GetWindowRectangle().Height);
+            TheirItemStartingLocationX = new RangeNode<int>(966, 0, (int) BasePlugin.API.GameController.Window.GetWindowRectangle().Width);
+            TheirItemStartingLocationY = new RangeNode<int>(863, 0, (int) BasePlugin.API.GameController.Window.GetWindowRectangle().Height);
             TheirItemsAscending = false;
             TheirItemTextColor = Color.Red;
             TheirItemsImageLeftOrRight = false;
         }
+
         public RangeNode<int> ImageSize { get; set; }
         public RangeNode<int> TextSize { get; set; }
 
