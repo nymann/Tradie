@@ -58,6 +58,56 @@ namespace Tradie
 
         public override void Render()
         {
+            ShowNpcTradeItems();
+            ShowPlayerTradeItems();
+        }
+
+        private void ShowNpcTradeItems()
+        {
+            var npcTradingWindow = GetNpcTadeWindow();
+            if (npcTradingWindow == null || !npcTradingWindow.IsVisible)
+                return;
+
+            var tradingItems = GetItemsInTradingWindow(npcTradingWindow);
+            var ourData = new ItemDisplay
+            {
+                Items = GetItemObjects(tradingItems.ourItems).OrderBy(item => item.Path),
+                X = Settings.YourItemStartingLocationX,
+                Y = Settings.YourItemStartingLocationY,
+                TextSize = Settings.TextSize,
+                TextColor = Settings.YourItemTextColor,
+                BackgroundColor = Settings.BackgroundColor,
+                BackgroundTransparency = Settings.BackgroundTransparency,
+                ImageSize = Settings.ImageSize,
+                Spacing = Settings.Spacing,
+                LeftAlignment = Settings.YourItemsImageLeftOrRight,
+                Ascending = Settings.YourItemsAscending
+            };
+
+            var theirData = new ItemDisplay
+            {
+                Items = GetItemObjects(tradingItems.theirItems).OrderBy(item => item.Path),
+                X = Settings.TheirItemStartingLocationX,
+                Y = Settings.TheirItemStartingLocationY,
+                TextSize = Settings.TextSize,
+                TextColor = Settings.TheirItemTextColor,
+                BackgroundColor = Settings.BackgroundColor,
+                BackgroundTransparency = Settings.BackgroundTransparency,
+                ImageSize = Settings.ImageSize,
+                Spacing = Settings.Spacing,
+                LeftAlignment = Settings.TheirItemsImageLeftOrRight,
+                Ascending = Settings.TheirItemsAscending
+            };
+
+            if (ourData.Items.Any())
+                DrawCurrency(ourData);
+
+            if (theirData.Items.Any())
+                DrawCurrency(theirData);
+        }
+
+        private void ShowPlayerTradeItems()
+        {
             var tradingWindow = GetTradingWindow();
             if (tradingWindow == null || !tradingWindow.IsVisible)
                 return;
@@ -94,7 +144,7 @@ namespace Tradie
             };
 
             if (ourData.Items.Any())
-                 DrawCurrency(ourData);
+                DrawCurrency(ourData);
 
             if (theirData.Items.Any())
                 DrawCurrency(theirData);
@@ -173,6 +223,21 @@ namespace Tradie
             }
         }
 
+        private Element GetNpcTadeWindow()
+        {
+            try
+            {
+                return GameController.Game.IngameState.UIRoot
+                    .Children[1]
+                    .Children[47]
+                    .Children[3];
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         private (List<NormalInventoryItem> ourItems, List<NormalInventoryItem> theirItems) GetItemsInTradingWindow(
             Element tradingWindow)
         {
@@ -189,8 +254,8 @@ namespace Tradie
                 var normalInventoryItem = ourElement.AsObject<NormalInventoryItem>();
                 if (normalInventoryItem == null)
                 {
-                    LogMessage("OurItem was null!", 5);
-                    throw new Exception("OurItem was null!");
+                    LogMessage("Tradie: OurItem was null!", 5);
+                    throw new Exception("Tradie: OurItem was null!");
                 }
 
                 ourItems.Add(normalInventoryItem);
@@ -201,8 +266,8 @@ namespace Tradie
                 var normalInventoryItem = theirElement.AsObject<NormalInventoryItem>();
                 if (normalInventoryItem == null)
                 {
-                    LogMessage("OurItem was null!", 5);
-                    throw new Exception("OurItem was null!");
+                    LogMessage("Tradie: OurItem was null!", 5);
+                    throw new Exception("Tradie: OurItem was null!");
                 }
 
                 theirItems.Add(normalInventoryItem);
@@ -222,34 +287,35 @@ namespace Tradie
 
             foreach (var normalInventoryItem in normalInventoryItems)
             {
-                var stack = normalInventoryItem.Item.GetComponent<Stack>();
-                var amount = stack?.Info == null ? 1 : stack.Size;
-                var metaData = normalInventoryItem.Item.GetComponent<RenderItem>().ResourcePath;
-                var name = GetImagePath(metaData, normalInventoryItem);
-                var found = false;
-
-                foreach (var item in items)
-                    if (item.ItemName.Equals(name))
-                    {
-                        item.Amount += amount;
-                        found = true;
-                        break;
-                    }
-
-                if (!found)
+                try
                 {
-                    metaData = normalInventoryItem.Item.GetComponent<RenderItem>().ResourcePath;
-                    if (metaData.Equals(""))
-                    {
-                        LogMessage($"Meta data of {name} is empty, skipping!", 5);
-                        continue;
-                    }
+                    if (normalInventoryItem.Item == null) continue;
+                    var metaData = normalInventoryItem.Item.GetComponent<RenderItem>().ResourcePath;
+                    if (metaData.Equals("")) continue;
+                    var stack = normalInventoryItem.Item.GetComponent<Stack>();
+                    var amount = stack?.Info == null ? 1 : stack.Size;
 
+                    var name = GetImagePath(metaData, normalInventoryItem);
+                    var found = false;
+
+                    foreach (var item in items)
+                        if (item.ItemName.Equals(name))
+                        {
+                            item.Amount += amount;
+                            found = true;
+                            break;
+                        }
+
+                    if (found) continue;
                     if (!IsWhitelisted(metaData))
                         continue;
 
                     var path = GetImagePath(metaData, normalInventoryItem);
                     items.Add(new Item(name, amount, path));
+                }
+                catch
+                {
+                    LogError("Tradie: Sometime went wrong in GetItemObjects() for a brief moment", 5);
                 }
             }
 
@@ -260,11 +326,10 @@ namespace Tradie
         {
             metadata = metadata.Replace(".dds", ".png");
             var url = $"http://webcdn.pathofexile.com/image/{metadata}";
-            var metadataPath = metadata.Replace('/', '\\').Replace(".png", "");
-            var fullPath = $"{PluginDirectory}\\images\\{metadataPath}.png";
+            var metadataPath = metadata.Replace('/', '\\');
+            var fullPath = $"{PluginDirectory}\\images\\{metadataPath}";
 
             /////////////////////////// Yucky Map bits ///////////////////////////////
-
             if (invItem.Item.HasComponent<PoeHUD.Poe.Components.Map>())
             {
                 var isShapedMap = 0;
@@ -272,18 +337,16 @@ namespace Tradie
 
                 foreach (var itemList in invItem.Item.GetComponent<Mods>().ItemMods)
                 {
-                    if (itemList.RawName.Contains("MapShaped"))
-                    {
-                        isShapedMap = 1;
-                        mapTier += 5;
-                    }
+                    if (!itemList.RawName.Contains("MapShaped")) continue;
+                    isShapedMap = 1;
+                    mapTier += 5;
                 }
 
                 url = $"http://webcdn.pathofexile.com/image/{metadata}?mn=1&mr={isShapedMap}&mt={mapTier}";
-                fullPath = $"{PluginDirectory}\\images\\{metadataPath}_{mapTier}_{isShapedMap}.png";
+                fullPath = $"{PluginDirectory}\\images\\{metadataPath.Replace(".png", "")}_{mapTier}_{isShapedMap}.png";
             }
-            /////////////////////////
-
+            //
+            
             if (File.Exists(fullPath))
                 return fullPath;
 
