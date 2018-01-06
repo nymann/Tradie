@@ -11,6 +11,7 @@ namespace Tradie
             Enable = false;
             ImageSize = new RangeNode<int>(32, 1, 78);
             TextSize = new RangeNode<int>(20, 1, 60);
+            Spacing = new RangeNode<int>(3, 0, 10);
 
             BackgroundColor = Color.Black;
             BackgroundTransparency = new RangeNode<int>(210, 0, 255);
@@ -31,6 +32,7 @@ namespace Tradie
 
         public RangeNode<int> ImageSize { get; set; }
         public RangeNode<int> TextSize { get; set; }
+        public RangeNode<int> Spacing { get; set; }
 
         public ColorNode BackgroundColor { get; set; }
         public RangeNode<int> BackgroundTransparency { get; set; }

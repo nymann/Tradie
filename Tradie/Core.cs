@@ -32,6 +32,7 @@ namespace Tradie
             var rootMenu = PluginSettingsRootMenu;
             MenuWrapper.AddMenu(rootMenu, "Image Size", Settings.ImageSize);
             MenuWrapper.AddMenu(rootMenu, "Text Size", Settings.TextSize);
+            MenuWrapper.AddMenu(rootMenu, "Spacing", Settings.Spacing, "Spacing between image and text");
 
             var background = MenuWrapper.AddMenu(rootMenu, "Background Box");
             MenuWrapper.AddMenu(background, "Color", Settings.BackgroundColor);
@@ -71,7 +72,7 @@ namespace Tradie
                 BackgroundColor = Settings.BackgroundColor,
                 BackgroundTransparency = Settings.BackgroundTransparency,
                 ImageSize = Settings.ImageSize,
-                Spacing = 5,
+                Spacing = Settings.Spacing,
                 LeftAlignment = Settings.YourItemsImageLeftOrRight,
                 Ascending = Settings.YourItemsAscending
             };
@@ -86,7 +87,7 @@ namespace Tradie
                 BackgroundColor = Settings.BackgroundColor,
                 BackgroundTransparency = Settings.BackgroundTransparency,
                 ImageSize = Settings.ImageSize,
-                Spacing = 5,
+                Spacing = Settings.Spacing,
                 LeftAlignment = Settings.TheirItemsImageLeftOrRight,
                 Ascending = Settings.TheirItemsAscending
             };
@@ -100,6 +101,7 @@ namespace Tradie
 
         private void DrawCurrency(ItemDisplay data)
         {
+            const string symbol = "-";
             var counter = 0;
             var newColor = data.BackgroundColor;
             newColor.A = (byte)data.BackgroundTransparency;
@@ -109,9 +111,9 @@ namespace Tradie
                 data.Y,
                 data.LeftAlignment
                     ? +data.ImageSize + data.Spacing +
-                      Graphics.MeasureText(data.Spacing + "x " + maxCount, data.TextSize).Width
+                      Graphics.MeasureText(data.Spacing + symbol + " " + maxCount, data.TextSize).Width
                     : -data.ImageSize - data.Spacing -
-                      Graphics.MeasureText(data.Spacing + "x " + maxCount, data.TextSize).Width,
+                      Graphics.MeasureText(data.Spacing + symbol + " " + maxCount, data.TextSize).Width,
                 data.Ascending
                     ? -data.ImageSize * data.Items.Count()
                     : data.ImageSize * data.Items.Count()
@@ -129,7 +131,7 @@ namespace Tradie
 
                 DrawImage(ourItem.Path, imageBox);
 
-                Graphics.DrawText(data.LeftAlignment ? $" x {ourItem.Amount}" : $"{ourItem.Amount} x ", data.TextSize,
+                Graphics.DrawText(data.LeftAlignment ? $" {symbol} {ourItem.Amount}" : $"{ourItem.Amount} {symbol} ", data.TextSize,
                     new Vector2(data.LeftAlignment ? data.X + data.ImageSize + data.Spacing : data.X - data.Spacing * 2,
                         imageBox.Center.Y - data.TextSize / 2 - 3),
                     Settings.YourItemTextColor,
