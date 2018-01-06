@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Security.Policy;
 using PoeHUD.Hud.Menu;
 using PoeHUD.Plugins;
 using PoeHUD.Poe;
@@ -15,6 +16,12 @@ namespace Tradie
 {
     public class Core : BaseSettingsPlugin<Settings>
     {
+        private readonly List<string> _whiteListedPaths = new List<string>
+        {
+            "Art/2DItems/Currency",
+            "Art/2DItems/Maps"
+        };
+
         public Core()
         {
             PluginName = "Tradie";
@@ -26,10 +33,15 @@ namespace Tradie
             var rootMenu = PluginSettingsRootMenu;
             MenuWrapper.AddMenu(rootMenu, "Image Size", Settings.ImageSize);
             MenuWrapper.AddMenu(rootMenu, "Text Size", Settings.TextSize);
+            MenuWrapper.AddMenu(rootMenu, "Spacing", Settings.Spacing, "Spacing between image and text");
+
+            var background = MenuWrapper.AddMenu(rootMenu, "Background Box");
+            MenuWrapper.AddMenu(background, "Color", Settings.BackgroundColor);
+            MenuWrapper.AddMenu(background, "Transparency", Settings.BackgroundTransparency);
+
             var yourItems = MenuWrapper.AddMenu(rootMenu, "Your Trade Items");
             MenuWrapper.AddMenu(yourItems, "Ascending Order", Settings.YourItemsAscending);
-            MenuWrapper.AddMenu(yourItems, "Currency Before Or After", Settings.YourItemsImageLeftOrRight,
-                "On: <Currency> x<Amount>\nOff: <Amount>x <Currency>");
+            MenuWrapper.AddMenu(yourItems, "Currency Before Or After", Settings.YourItemsImageLeftOrRight, "On: <Currency> x<Amount>\nOff: <Amount>x <Currency>");
             MenuWrapper.AddMenu(yourItems, "Text Color", Settings.YourItemTextColor);
             var yourItemLocation = MenuWrapper.AddMenu(yourItems, "Starting Location");
             MenuWrapper.AddMenu(yourItemLocation, "X", Settings.YourItemStartingLocationX);
@@ -37,8 +49,7 @@ namespace Tradie
 
             var theirItems = MenuWrapper.AddMenu(rootMenu, "Their Trade Items");
             MenuWrapper.AddMenu(theirItems, "Ascending Order", Settings.TheirItemsAscending);
-            MenuWrapper.AddMenu(theirItems, "Currency Before Or After", Settings.TheirItemsImageLeftOrRight,
-                "On: <Currency> x<Amount>\nOff: <Amount>x <Currency>");
+            MenuWrapper.AddMenu(theirItems, "Currency Before Or After", Settings.TheirItemsImageLeftOrRight, "On: <Currency> x<Amount>\nOff: <Amount>x <Currency>");
             MenuWrapper.AddMenu(theirItems, "Text Color", Settings.TheirItemTextColor);
             var theirItemLocation = MenuWrapper.AddMenu(theirItems, "Starting Location");
             MenuWrapper.AddMenu(theirItemLocation, "X", Settings.TheirItemStartingLocationX);
@@ -52,28 +63,32 @@ namespace Tradie
                 return;
 
             var tradingItems = GetItemsInTradingWindow(tradingWindow);
-            var ourData = new RenameLater
+            var ourData = new ItemDisplay
             {
-                Items = GetItemObjects(tradingItems.ourItems),
+                Items = GetItemObjects(tradingItems.ourItems).OrderBy(item => item.Path),
                 X = Settings.YourItemStartingLocationX,
                 Y = Settings.YourItemStartingLocationY,
                 TextSize = Settings.TextSize,
                 TextColor = Settings.YourItemTextColor,
+                BackgroundColor = Settings.BackgroundColor,
+                BackgroundTransparency = Settings.BackgroundTransparency,
                 ImageSize = Settings.ImageSize,
-                Spacing = 5,
+                Spacing = Settings.Spacing,
                 LeftAlignment = Settings.YourItemsImageLeftOrRight,
                 Ascending = Settings.YourItemsAscending
             };
 
-            var theirData = new RenameLater
+            var theirData = new ItemDisplay
             {
-                Items = GetItemObjects(tradingItems.theirItems),
+                Items = GetItemObjects(tradingItems.theirItems).OrderBy(item => item.Path),
                 X = Settings.TheirItemStartingLocationX,
                 Y = Settings.TheirItemStartingLocationY,
                 TextSize = Settings.TextSize,
                 TextColor = Settings.TheirItemTextColor,
+                BackgroundColor = Settings.BackgroundColor,
+                BackgroundTransparency = Settings.BackgroundTransparency,
                 ImageSize = Settings.ImageSize,
-                Spacing = 5,
+                Spacing = Settings.Spacing,
                 LeftAlignment = Settings.TheirItemsImageLeftOrRight,
                 Ascending = Settings.TheirItemsAscending
             };
@@ -85,20 +100,19 @@ namespace Tradie
                 DrawCurrency(theirData);
         }
 
-        private void DrawCurrency(RenameLater data)
+        private void DrawCurrency(ItemDisplay data)
         {
+            const string symbol = "-";
             var counter = 0;
-            var newColor = Color.Black;
-            newColor.A = 230;
+            var newColor = data.BackgroundColor;
+            newColor.A = (byte)data.BackgroundTransparency;
             var maxCount = data.Items.Max(i => i.Amount);
 
             var background = new RectangleF(data.LeftAlignment ? data.X : data.X + data.ImageSize,
                 data.Y,
                 data.LeftAlignment
-                    ? +data.ImageSize + data.Spacing +
-                      Graphics.MeasureText(data.Spacing + "x " + maxCount, data.TextSize).Width
-                    : -data.ImageSize - data.Spacing -
-                      Graphics.MeasureText(data.Spacing + "x " + maxCount, data.TextSize).Width,
+                    ? +data.ImageSize + data.Spacing + 3 + Graphics.MeasureText(symbol + " " + maxCount, data.TextSize).Width
+                    : -data.ImageSize - data.Spacing - 3 - Graphics.MeasureText(symbol + " " + maxCount, data.TextSize).Width,
                 data.Ascending
                     ? -data.ImageSize * data.Items.Count()
                     : data.ImageSize * data.Items.Count()
@@ -111,13 +125,16 @@ namespace Tradie
                 var imageBox = new RectangleF(data.X,
                     data.Ascending
                         ? data.Y - counter * data.ImageSize
-                        : data.Y - data.ImageSize + counter * data.ImageSize, data.ImageSize, data.ImageSize);
+                        : data.Y - data.ImageSize + counter * data.ImageSize, 
+                    data.ImageSize, data.ImageSize);
 
 
                 DrawImage(ourItem.Path, imageBox);
 
-                Graphics.DrawText(data.LeftAlignment ? $" x {ourItem.Amount}" : $"{ourItem.Amount} x ", data.TextSize,
-                    new Vector2(data.LeftAlignment ? data.X + data.ImageSize + data.Spacing : data.X - data.Spacing * 2,
+                Graphics.DrawText(data.LeftAlignment ? $"{symbol} {ourItem.Amount}" : $"{ourItem.Amount} {symbol}", data.TextSize,
+                    new Vector2(data.LeftAlignment 
+                    ? data.X + data.ImageSize + data.Spacing 
+                    : data.X - data.Spacing,
                         imageBox.Center.Y - data.TextSize / 2 - 3),
                     Settings.YourItemTextColor,
                     data.LeftAlignment ? FontDrawFlags.Left : FontDrawFlags.Right);
@@ -194,16 +211,21 @@ namespace Tradie
             return (ourItems, theirItems);
         }
 
+        private bool IsWhitelisted(string metaData)
+        {
+            return _whiteListedPaths.Any(metaData.Contains);
+        }
+
         private IEnumerable<Item> GetItemObjects(IEnumerable<NormalInventoryItem> normalInventoryItems)
         {
             var items = new List<Item>();
 
             foreach (var normalInventoryItem in normalInventoryItems)
             {
-                var baseItemType = GameController.Files.BaseItemTypes.Translate(normalInventoryItem.Item.Path);
                 var stack = normalInventoryItem.Item.GetComponent<Stack>();
                 var amount = stack?.Info == null ? 1 : stack.Size;
-                var name = baseItemType.BaseName;
+                var metaData = normalInventoryItem.Item.GetComponent<RenderItem>().ResourcePath;
+                var name = GetImagePath(metaData, normalInventoryItem);
                 var found = false;
 
                 foreach (var item in items)
@@ -216,14 +238,17 @@ namespace Tradie
 
                 if (!found)
                 {
-                    var metaData = normalInventoryItem.Item.GetComponent<RenderItem>().ResourcePath;
+                    metaData = normalInventoryItem.Item.GetComponent<RenderItem>().ResourcePath;
                     if (metaData.Equals(""))
                     {
                         LogMessage($"Meta data of {name} is empty, skipping!", 5);
                         continue;
                     }
 
-                    var path = GetImagePath(metaData);
+                    if (!IsWhitelisted(metaData))
+                        continue;
+
+                    var path = GetImagePath(metaData, normalInventoryItem);
                     items.Add(new Item(name, amount, path));
                 }
             }
@@ -231,12 +256,33 @@ namespace Tradie
             return items;
         }
 
-        private string GetImagePath(string metadata)
+        private string GetImagePath(string metadata, NormalInventoryItem invItem)
         {
             metadata = metadata.Replace(".dds", ".png");
             var url = $"http://webcdn.pathofexile.com/image/{metadata}";
-            var metadataPath = metadata.Replace('/', '\\');
-            var fullPath = $"{PluginDirectory}\\images\\{metadataPath}";
+            var metadataPath = metadata.Replace('/', '\\').Replace(".png", "");
+            var fullPath = $"{PluginDirectory}\\images\\{metadataPath}.png";
+
+            /////////////////////////// Yucky Map bits ///////////////////////////////
+
+            if (invItem.Item.HasComponent<PoeHUD.Poe.Components.Map>())
+            {
+                var isShapedMap = 0;
+                var mapTier = invItem.Item.GetComponent<PoeHUD.Poe.Components.Map>().Tier;
+
+                foreach (var itemList in invItem.Item.GetComponent<Mods>().ItemMods)
+                {
+                    if (itemList.RawName.Contains("MapShaped"))
+                    {
+                        isShapedMap = 1;
+                        mapTier += 5;
+                    }
+                }
+
+                url = $"http://webcdn.pathofexile.com/image/{metadata}?mn=1&mr={isShapedMap}&mt={mapTier}";
+                fullPath = $"{PluginDirectory}\\images\\{metadataPath}_{mapTier}_{isShapedMap}.png";
+            }
+            /////////////////////////
 
             if (File.Exists(fullPath))
                 return fullPath;
