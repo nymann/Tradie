@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Security.Policy;
 using PoeHUD.Hud.Menu;
 using PoeHUD.Plugins;
 using PoeHUD.Poe;
@@ -247,7 +248,7 @@ namespace Tradie
                     if (!IsWhitelisted(metaData))
                         continue;
 
-                    var path = GetImagePath(metaData);
+                    var path = GetImagePath(metaData, normalInventoryItem);
                     items.Add(new Item(name, amount, path));
                 }
             }
@@ -255,12 +256,19 @@ namespace Tradie
             return items;
         }
 
-        private string GetImagePath(string metadata)
+        private string GetImagePath(string metadata, NormalInventoryItem invItem)
         {
             metadata = metadata.Replace(".dds", ".png");
             var url = $"http://webcdn.pathofexile.com/image/{metadata}";
-            var metadataPath = metadata.Replace('/', '\\');
-            var fullPath = $"{PluginDirectory}\\images\\{metadataPath}";
+
+            if (invItem.Item.HasComponent<PoeHUD.Poe.Components.Map>())
+                url = $"http://webcdn.pathofexile.com/image/{metadata}?mn=1&mt={invItem.Item.GetComponent<PoeHUD.Poe.Components.Map>().Tier}";
+
+            var metadataPath = metadata.Replace('/', '\\').Replace(".png", "");
+            var fullPath = $"{PluginDirectory}\\images\\{metadataPath}.png";
+
+            if (invItem.Item.HasComponent<PoeHUD.Poe.Components.Map>())
+                fullPath = $"{PluginDirectory}\\images\\{metadataPath}_{invItem.Item.GetComponent<PoeHUD.Poe.Components.Map>().Tier}.png";
 
             if (File.Exists(fullPath))
                 return fullPath;
