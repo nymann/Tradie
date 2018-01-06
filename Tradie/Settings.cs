@@ -12,6 +12,9 @@ namespace Tradie
             ImageSize = new RangeNode<int>(32, 1, 78);
             TextSize = new RangeNode<int>(20, 1, 60);
 
+            BackgroundColor = Color.Black;
+            BackgroundTransparency = new RangeNode<int>(210, 0, 255);
+
 
             YourItemStartingLocationX = new RangeNode<int>(966, 0, (int) BasePlugin.API.GameController.Window.GetWindowRectangle().Width);
             YourItemStartingLocationY = new RangeNode<int>(863, 0, (int) BasePlugin.API.GameController.Window.GetWindowRectangle().Height);
@@ -28,6 +31,9 @@ namespace Tradie
 
         public RangeNode<int> ImageSize { get; set; }
         public RangeNode<int> TextSize { get; set; }
+
+        public ColorNode BackgroundColor { get; set; }
+        public RangeNode<int> BackgroundTransparency { get; set; }
 
         public RangeNode<int> YourItemStartingLocationX { get; set; }
         public RangeNode<int> YourItemStartingLocationY { get; set; }

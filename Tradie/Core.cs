@@ -15,6 +15,12 @@ namespace Tradie
 {
     public class Core : BaseSettingsPlugin<Settings>
     {
+        private readonly List<string> _whiteListedPaths = new List<string>
+        {
+            "Art/2DItems/Currency",
+            "Art/2DItems/Maps"
+        };
+
         public Core()
         {
             PluginName = "Tradie";
@@ -26,10 +32,14 @@ namespace Tradie
             var rootMenu = PluginSettingsRootMenu;
             MenuWrapper.AddMenu(rootMenu, "Image Size", Settings.ImageSize);
             MenuWrapper.AddMenu(rootMenu, "Text Size", Settings.TextSize);
+
+            var background = MenuWrapper.AddMenu(rootMenu, "Background Box");
+            MenuWrapper.AddMenu(background, "Color", Settings.BackgroundColor);
+            MenuWrapper.AddMenu(background, "Transparency", Settings.BackgroundTransparency);
+
             var yourItems = MenuWrapper.AddMenu(rootMenu, "Your Trade Items");
             MenuWrapper.AddMenu(yourItems, "Ascending Order", Settings.YourItemsAscending);
-            MenuWrapper.AddMenu(yourItems, "Currency Before Or After", Settings.YourItemsImageLeftOrRight,
-                "On: <Currency> x<Amount>\nOff: <Amount>x <Currency>");
+            MenuWrapper.AddMenu(yourItems, "Currency Before Or After", Settings.YourItemsImageLeftOrRight, "On: <Currency> x<Amount>\nOff: <Amount>x <Currency>");
             MenuWrapper.AddMenu(yourItems, "Text Color", Settings.YourItemTextColor);
             var yourItemLocation = MenuWrapper.AddMenu(yourItems, "Starting Location");
             MenuWrapper.AddMenu(yourItemLocation, "X", Settings.YourItemStartingLocationX);
@@ -37,8 +47,7 @@ namespace Tradie
 
             var theirItems = MenuWrapper.AddMenu(rootMenu, "Their Trade Items");
             MenuWrapper.AddMenu(theirItems, "Ascending Order", Settings.TheirItemsAscending);
-            MenuWrapper.AddMenu(theirItems, "Currency Before Or After", Settings.TheirItemsImageLeftOrRight,
-                "On: <Currency> x<Amount>\nOff: <Amount>x <Currency>");
+            MenuWrapper.AddMenu(theirItems, "Currency Before Or After", Settings.TheirItemsImageLeftOrRight, "On: <Currency> x<Amount>\nOff: <Amount>x <Currency>");
             MenuWrapper.AddMenu(theirItems, "Text Color", Settings.TheirItemTextColor);
             var theirItemLocation = MenuWrapper.AddMenu(theirItems, "Starting Location");
             MenuWrapper.AddMenu(theirItemLocation, "X", Settings.TheirItemStartingLocationX);
@@ -52,26 +61,30 @@ namespace Tradie
                 return;
 
             var tradingItems = GetItemsInTradingWindow(tradingWindow);
-            var ourData = new RenameLater
+            var ourData = new ItemDisplay
             {
                 Items = GetItemObjects(tradingItems.ourItems),
                 X = Settings.YourItemStartingLocationX,
                 Y = Settings.YourItemStartingLocationY,
                 TextSize = Settings.TextSize,
                 TextColor = Settings.YourItemTextColor,
+                BackgroundColor = Settings.BackgroundColor,
+                BackgroundTransparency = Settings.BackgroundTransparency,
                 ImageSize = Settings.ImageSize,
                 Spacing = 5,
                 LeftAlignment = Settings.YourItemsImageLeftOrRight,
                 Ascending = Settings.YourItemsAscending
             };
 
-            var theirData = new RenameLater
+            var theirData = new ItemDisplay
             {
                 Items = GetItemObjects(tradingItems.theirItems),
                 X = Settings.TheirItemStartingLocationX,
                 Y = Settings.TheirItemStartingLocationY,
                 TextSize = Settings.TextSize,
                 TextColor = Settings.TheirItemTextColor,
+                BackgroundColor = Settings.BackgroundColor,
+                BackgroundTransparency = Settings.BackgroundTransparency,
                 ImageSize = Settings.ImageSize,
                 Spacing = 5,
                 LeftAlignment = Settings.TheirItemsImageLeftOrRight,
@@ -85,11 +98,11 @@ namespace Tradie
                 DrawCurrency(theirData);
         }
 
-        private void DrawCurrency(RenameLater data)
+        private void DrawCurrency(ItemDisplay data)
         {
             var counter = 0;
-            var newColor = Color.Black;
-            newColor.A = 230;
+            var newColor = data.BackgroundColor;
+            newColor.A = (byte)data.BackgroundTransparency;
             var maxCount = data.Items.Max(i => i.Amount);
 
             var background = new RectangleF(data.LeftAlignment ? data.X : data.X + data.ImageSize,
@@ -194,6 +207,11 @@ namespace Tradie
             return (ourItems, theirItems);
         }
 
+        private bool IsWhitelisted(string metaData)
+        {
+            return _whiteListedPaths.Any(metaData.Contains);
+        }
+
         private IEnumerable<Item> GetItemObjects(IEnumerable<NormalInventoryItem> normalInventoryItems)
         {
             var items = new List<Item>();
@@ -222,6 +240,9 @@ namespace Tradie
                         LogMessage($"Meta data of {name} is empty, skipping!", 5);
                         continue;
                     }
+
+                    if (!IsWhitelisted(metaData))
+                        continue;
 
                     var path = GetImagePath(metaData);
                     items.Add(new Item(name, amount, path));
