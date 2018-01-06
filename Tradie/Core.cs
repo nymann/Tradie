@@ -110,10 +110,8 @@ namespace Tradie
             var background = new RectangleF(data.LeftAlignment ? data.X : data.X + data.ImageSize,
                 data.Y,
                 data.LeftAlignment
-                    ? +data.ImageSize + data.Spacing +
-                      Graphics.MeasureText(data.Spacing + symbol + " " + maxCount, data.TextSize).Width
-                    : -data.ImageSize - data.Spacing -
-                      Graphics.MeasureText(data.Spacing + symbol + " " + maxCount, data.TextSize).Width,
+                    ? +data.ImageSize + data.Spacing + 3 + Graphics.MeasureText(symbol + " " + maxCount, data.TextSize).Width
+                    : -data.ImageSize - data.Spacing - 3 - Graphics.MeasureText(symbol + " " + maxCount, data.TextSize).Width,
                 data.Ascending
                     ? -data.ImageSize * data.Items.Count()
                     : data.ImageSize * data.Items.Count()
@@ -126,13 +124,16 @@ namespace Tradie
                 var imageBox = new RectangleF(data.X,
                     data.Ascending
                         ? data.Y - counter * data.ImageSize
-                        : data.Y - data.ImageSize + counter * data.ImageSize, data.ImageSize, data.ImageSize);
+                        : data.Y - data.ImageSize + counter * data.ImageSize, 
+                    data.ImageSize, data.ImageSize);
 
 
                 DrawImage(ourItem.Path, imageBox);
 
-                Graphics.DrawText(data.LeftAlignment ? $" {symbol} {ourItem.Amount}" : $"{ourItem.Amount} {symbol} ", data.TextSize,
-                    new Vector2(data.LeftAlignment ? data.X + data.ImageSize + data.Spacing : data.X - data.Spacing * 2,
+                Graphics.DrawText(data.LeftAlignment ? $"{symbol} {ourItem.Amount}" : $"{ourItem.Amount} {symbol}", data.TextSize,
+                    new Vector2(data.LeftAlignment 
+                    ? data.X + data.ImageSize + data.Spacing 
+                    : data.X - data.Spacing,
                         imageBox.Center.Y - data.TextSize / 2 - 3),
                     Settings.YourItemTextColor,
                     data.LeftAlignment ? FontDrawFlags.Left : FontDrawFlags.Right);
