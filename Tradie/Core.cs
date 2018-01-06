@@ -65,7 +65,7 @@ namespace Tradie
             var tradingItems = GetItemsInTradingWindow(tradingWindow);
             var ourData = new ItemDisplay
             {
-                Items = GetItemObjects(tradingItems.ourItems),
+                Items = GetItemObjects(tradingItems.ourItems).OrderBy(item => item.Path),
                 X = Settings.YourItemStartingLocationX,
                 Y = Settings.YourItemStartingLocationY,
                 TextSize = Settings.TextSize,
@@ -80,7 +80,7 @@ namespace Tradie
 
             var theirData = new ItemDisplay
             {
-                Items = GetItemObjects(tradingItems.theirItems),
+                Items = GetItemObjects(tradingItems.theirItems).OrderBy(item => item.Path),
                 X = Settings.TheirItemStartingLocationX,
                 Y = Settings.TheirItemStartingLocationY,
                 TextSize = Settings.TextSize,
@@ -222,10 +222,10 @@ namespace Tradie
 
             foreach (var normalInventoryItem in normalInventoryItems)
             {
-                var baseItemType = GameController.Files.BaseItemTypes.Translate(normalInventoryItem.Item.Path);
                 var stack = normalInventoryItem.Item.GetComponent<Stack>();
                 var amount = stack?.Info == null ? 1 : stack.Size;
-                var name = baseItemType.BaseName;
+                var metaData = normalInventoryItem.Item.GetComponent<RenderItem>().ResourcePath;
+                var name = GetImagePath(metaData, normalInventoryItem);
                 var found = false;
 
                 foreach (var item in items)
@@ -238,7 +238,7 @@ namespace Tradie
 
                 if (!found)
                 {
-                    var metaData = normalInventoryItem.Item.GetComponent<RenderItem>().ResourcePath;
+                    metaData = normalInventoryItem.Item.GetComponent<RenderItem>().ResourcePath;
                     if (metaData.Equals(""))
                     {
                         LogMessage($"Meta data of {name} is empty, skipping!", 5);
@@ -260,15 +260,29 @@ namespace Tradie
         {
             metadata = metadata.Replace(".dds", ".png");
             var url = $"http://webcdn.pathofexile.com/image/{metadata}";
-
-            if (invItem.Item.HasComponent<PoeHUD.Poe.Components.Map>())
-                url = $"http://webcdn.pathofexile.com/image/{metadata}?mn=1&mt={invItem.Item.GetComponent<PoeHUD.Poe.Components.Map>().Tier}";
-
             var metadataPath = metadata.Replace('/', '\\').Replace(".png", "");
             var fullPath = $"{PluginDirectory}\\images\\{metadataPath}.png";
 
+            /////////////////////////// Yucky Map bits ///////////////////////////////
+
             if (invItem.Item.HasComponent<PoeHUD.Poe.Components.Map>())
-                fullPath = $"{PluginDirectory}\\images\\{metadataPath}_{invItem.Item.GetComponent<PoeHUD.Poe.Components.Map>().Tier}.png";
+            {
+                var isShapedMap = 0;
+                var mapTier = invItem.Item.GetComponent<PoeHUD.Poe.Components.Map>().Tier;
+
+                foreach (var itemList in invItem.Item.GetComponent<Mods>().ItemMods)
+                {
+                    if (itemList.RawName.Contains("MapShaped"))
+                    {
+                        isShapedMap = 1;
+                        mapTier += 5;
+                    }
+                }
+
+                url = $"http://webcdn.pathofexile.com/image/{metadata}?mn=1&mr={isShapedMap}&mt={mapTier}";
+                fullPath = $"{PluginDirectory}\\images\\{metadataPath}_{mapTier}_{isShapedMap}.png";
+            }
+            /////////////////////////
 
             if (File.Exists(fullPath))
                 return fullPath;
