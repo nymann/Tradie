@@ -13,20 +13,18 @@ namespace Tradie
             TextSize = new RangeNode<int>(20, 1, 60);
             Spacing = new RangeNode<int>(3, 0, 20);
 
-            BackgroundColor = Color.Black;
-            BackgroundTransparency = new RangeNode<int>(210, 0, 255);
-
-
             YourItemStartingLocationX = new RangeNode<int>(966, 0, (int) BasePlugin.API.GameController.Window.GetWindowRectangle().Width);
             YourItemStartingLocationY = new RangeNode<int>(863, 0, (int) BasePlugin.API.GameController.Window.GetWindowRectangle().Height);
             YourItemsAscending = true;
             YourItemTextColor = Color.LightBlue;
+            YourItemBackgroundColor = Color.Black;
             YourItemsImageLeftOrRight = true;
 
             TheirItemStartingLocationX = new RangeNode<int>(966, 0, (int) BasePlugin.API.GameController.Window.GetWindowRectangle().Width);
             TheirItemStartingLocationY = new RangeNode<int>(863, 0, (int) BasePlugin.API.GameController.Window.GetWindowRectangle().Height);
             TheirItemsAscending = false;
             TheirItemTextColor = Color.Red;
+            TheirItemBackgroundColor = Color.Black;
             TheirItemsImageLeftOrRight = false;
         }
 
@@ -34,19 +32,18 @@ namespace Tradie
         public RangeNode<int> TextSize { get; set; }
         public RangeNode<int> Spacing { get; set; }
 
-        public ColorNode BackgroundColor { get; set; }
-        public RangeNode<int> BackgroundTransparency { get; set; }
-
         public RangeNode<int> YourItemStartingLocationX { get; set; }
         public RangeNode<int> YourItemStartingLocationY { get; set; }
         public ToggleNode YourItemsAscending { get; set; }
         public ColorNode YourItemTextColor { get; set; }
+        public ColorNode YourItemBackgroundColor { get; set; }
         public ToggleNode YourItemsImageLeftOrRight { get; set; }
 
         public RangeNode<int> TheirItemStartingLocationX { get; set; }
         public RangeNode<int> TheirItemStartingLocationY { get; set; }
         public ToggleNode TheirItemsAscending { get; set; }
         public ColorNode TheirItemTextColor { get; set; }
+        public ColorNode TheirItemBackgroundColor { get; set; }
         public ToggleNode TheirItemsImageLeftOrRight { get; set; }
     }
 }
