@@ -16,7 +16,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>D:\Path of exile Tools\PoE HUD #1\Release\plugins\1Tradie\</OutputPath>
+    <OutputPath>D:\Path of exile Tools\PoE HUD #1\ImGUI\Release\plugins\1Tradie\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -24,7 +24,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\..\..\..\PoEHUD-x64\release\plugins\Tradie\</OutputPath>
+    <OutputPath>D:\Path of exile Tools\PoE HUD #1\ImGUI\Release\plugins\1Tradie\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
