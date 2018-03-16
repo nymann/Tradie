@@ -24,30 +24,30 @@ namespace Tradie
 
         public Core() => PluginName = "Tradie";
 
-        public override void InitialiseMenu(MenuItem mainMenu)
-        {
-            base.InitialiseMenu(mainMenu);
-            var rootMenu = PluginSettingsRootMenu;
-            MenuWrapper.AddMenu(rootMenu, "Image Size", Settings.ImageSize);
-            MenuWrapper.AddMenu(rootMenu, "Text Size", Settings.TextSize);
-            MenuWrapper.AddMenu(rootMenu, "Spacing", Settings.Spacing, "Spacing between image and text");
-            var yourItems = MenuWrapper.AddMenu(rootMenu, "Your Trade Items");
-            MenuWrapper.AddMenu(yourItems, "Ascending Order", Settings.YourItemsAscending);
-            MenuWrapper.AddMenu(yourItems, "Currency Before Or After", Settings.YourItemsImageLeftOrRight, "On: <Currency> x<Amount>\nOff: <Amount>x <Currency>");
-            MenuWrapper.AddMenu(yourItems, "Text Color", Settings.YourItemTextColor);
-            MenuWrapper.AddMenu(yourItems, "Background Color", Settings.YourItemBackgroundColor);
-            var yourItemLocation = MenuWrapper.AddMenu(yourItems, "Starting Location");
-            MenuWrapper.AddMenu(yourItemLocation, "X", Settings.YourItemStartingLocationX);
-            MenuWrapper.AddMenu(yourItemLocation, "Y", Settings.YourItemStartingLocationY);
-            var theirItems = MenuWrapper.AddMenu(rootMenu, "Their Trade Items");
-            MenuWrapper.AddMenu(theirItems, "Ascending Order", Settings.TheirItemsAscending);
-            MenuWrapper.AddMenu(theirItems, "Currency Before Or After", Settings.TheirItemsImageLeftOrRight, "On: <Currency> x<Amount>\nOff: <Amount>x <Currency>");
-            MenuWrapper.AddMenu(theirItems, "Text Color", Settings.TheirItemTextColor);
-            MenuWrapper.AddMenu(theirItems, "Background Color", Settings.TheirItemBackgroundColor);
-            var theirItemLocation = MenuWrapper.AddMenu(theirItems, "Starting Location");
-            MenuWrapper.AddMenu(theirItemLocation, "X", Settings.TheirItemStartingLocationX);
-            MenuWrapper.AddMenu(theirItemLocation, "Y", Settings.TheirItemStartingLocationY);
-        }
+        //public override void InitialiseMenu(MenuItem mainMenu)
+        //{
+        //    base.InitialiseMenu(mainMenu);
+        //    var rootMenu = PluginSettingsRootMenu;
+        //    MenuWrapper.AddMenu(rootMenu, "Image Size", Settings.ImageSize);
+        //    MenuWrapper.AddMenu(rootMenu, "Text Size", Settings.TextSize);
+        //    MenuWrapper.AddMenu(rootMenu, "Spacing", Settings.Spacing, "Spacing between image and text");
+        //    var yourItems = MenuWrapper.AddMenu(rootMenu, "Your Trade Items");
+        //    MenuWrapper.AddMenu(yourItems, "Ascending Order", Settings.YourItemsAscending);
+        //    MenuWrapper.AddMenu(yourItems, "Currency Before Or After", Settings.YourItemsImageLeftOrRight, "On: <Currency> x<Amount>\nOff: <Amount>x <Currency>");
+        //    MenuWrapper.AddMenu(yourItems, "Text Color", Settings.YourItemTextColor);
+        //    MenuWrapper.AddMenu(yourItems, "Background Color", Settings.YourItemBackgroundColor);
+        //    var yourItemLocation = MenuWrapper.AddMenu(yourItems, "Starting Location");
+        //    MenuWrapper.AddMenu(yourItemLocation, "X", Settings.YourItemStartingLocationX);
+        //    MenuWrapper.AddMenu(yourItemLocation, "Y", Settings.YourItemStartingLocationY);
+        //    var theirItems = MenuWrapper.AddMenu(rootMenu, "Their Trade Items");
+        //    MenuWrapper.AddMenu(theirItems, "Ascending Order", Settings.TheirItemsAscending);
+        //    MenuWrapper.AddMenu(theirItems, "Currency Before Or After", Settings.TheirItemsImageLeftOrRight, "On: <Currency> x<Amount>\nOff: <Amount>x <Currency>");
+        //    MenuWrapper.AddMenu(theirItems, "Text Color", Settings.TheirItemTextColor);
+        //    MenuWrapper.AddMenu(theirItems, "Background Color", Settings.TheirItemBackgroundColor);
+        //    var theirItemLocation = MenuWrapper.AddMenu(theirItems, "Starting Location");
+        //    MenuWrapper.AddMenu(theirItemLocation, "X", Settings.TheirItemStartingLocationX);
+        //    MenuWrapper.AddMenu(theirItemLocation, "Y", Settings.TheirItemStartingLocationY);
+        //}
 
         public override void Render()
         {
