@@ -24,7 +24,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>D:\Path of exile Tools\PoE HUD #1\ImGUI - New Menu\Release\plugins\1Tradie\</OutputPath>
+    <OutputPath>D:\Path of exile Tools\PoEHUD\Release\plugins\1Tradie\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
