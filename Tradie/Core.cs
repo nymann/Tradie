@@ -171,7 +171,7 @@ namespace Tradie
         {
             try
             {
-                return GameController.Game.IngameState.UIRoot.Children[1].Children[50].Children[3].Children[1].Children[0].Children[0];
+                return GameController.Game.IngameState.UIRoot.Children[1].Children[55].Children[3].Children[1].Children[0].Children[0];
             }
             catch
             {
@@ -183,7 +183,7 @@ namespace Tradie
         {
             try
             {
-                return GameController.Game.IngameState.UIRoot.Children[1].Children[49].Children[3];
+                return GameController.Game.IngameState.UIRoot.Children[1].Children[54].Children[3];
             }
             catch
             {
@@ -200,7 +200,8 @@ namespace Tradie
 
             // We are skipping the first, since it's a Element ("Place items you want to trade here") that we don't need.
             // 
-            foreach (var ourElement in ourItemsElement.Children.Skip(1))
+            // skipping the first item as its a strange object added after 3.3 Incursion
+            foreach (var ourElement in ourItemsElement.Children.Skip(2))
             {
                 var normalInventoryItem = ourElement.AsObject<NormalInventoryItem>();
                 if (normalInventoryItem == null)
@@ -212,7 +213,8 @@ namespace Tradie
                 ourItems.Add(normalInventoryItem);
             }
 
-            foreach (var theirElement in theirItemsElement.Children)
+            // skipping the first item as its a strange object added after 3.3 Incursion
+            foreach (var theirElement in theirItemsElement.Children.Skip(1))
             {
                 var normalInventoryItem = theirElement.AsObject<NormalInventoryItem>();
                 if (normalInventoryItem == null)
