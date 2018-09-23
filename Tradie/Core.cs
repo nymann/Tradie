@@ -149,7 +149,7 @@ namespace Tradie
                 counter++;
                 var imageBox = new RectangleF(data.X, data.Ascending ? data.Y - counter * data.ImageSize : data.Y - data.ImageSize + counter * data.ImageSize, data.ImageSize, data.ImageSize);
                 DrawImage(ourItem.Path, imageBox);
-                Graphics.DrawText(data.LeftAlignment ? $"{symbol} {ourItem.Amount}" : $"{ourItem.Amount} {symbol}", data.TextSize, new Vector2(data.LeftAlignment ? data.X + data.ImageSize + data.Spacing : data.X - data.Spacing, imageBox.Center.Y - data.TextSize / 2 - 3), Settings.YourItemTextColor, data.LeftAlignment ? FontDrawFlags.Left : FontDrawFlags.Right);
+                Graphics.DrawText(data.LeftAlignment ? $"{symbol} {ourItem.Amount}" : $"{ourItem.Amount} {symbol}", data.TextSize, new Vector2(data.LeftAlignment ? data.X + data.ImageSize + data.Spacing : data.X - data.Spacing, imageBox.Center.Y - data.TextSize / 2 - 3), data.TextColor, data.LeftAlignment ? FontDrawFlags.Left : FontDrawFlags.Right);
             }
         }
 
@@ -171,7 +171,7 @@ namespace Tradie
         {
             try
             {
-                return GameController.Game.IngameState.UIRoot.Children[1].Children[55].Children[3].Children[1].Children[0].Children[0];
+                return GameController.Game.IngameState.UIRoot.Children[1].Children[61].Children[3].Children[1].Children[0].Children[0];
             }
             catch
             {
@@ -183,7 +183,7 @@ namespace Tradie
         {
             try
             {
-                return GameController.Game.IngameState.UIRoot.Children[1].Children[54].Children[3];
+                return GameController.Game.IngameState.UIRoot.Children[1].Children[60].Children[3];
             }
             catch
             {
