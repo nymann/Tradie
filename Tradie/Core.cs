@@ -51,6 +51,8 @@ namespace Tradie
 
         public override void Render()
         {
+            var Area = GameController.Game.IngameState.Data.CurrentArea;
+            if (!Area.IsTown && !Area.RawName.Contains("Hideout")) return;
             ShowNpcTradeItems();
             ShowPlayerTradeItems();
         }
@@ -171,7 +173,7 @@ namespace Tradie
         {
             try
             {
-                return GameController.Game.IngameState.UIRoot.Children[1].Children[61].Children[3].Children[1].Children[0].Children[0];
+                return GameController.Game.IngameState.UIRoot.Children[1].Children[71].Children[3].Children[1].Children[0].Children[0];
             }
             catch
             {
@@ -183,7 +185,7 @@ namespace Tradie
         {
             try
             {
-                return GameController.Game.IngameState.UIRoot.Children[1].Children[60].Children[3];
+                return GameController.Game.IngameState.UIRoot.Children[1].Children[70].Children[3];
             }
             catch
             {
