@@ -173,7 +173,7 @@ namespace Tradie
         {
             try
             {
-                return GameController.Game.IngameState.UIRoot.Children[1].Children[71].Children[3].Children[1].Children[0].Children[0];
+                return GameController.Game.IngameState.UIRoot.Children[1].Children[74].Children[3].Children[1].Children[0].Children[0];
             }
             catch
             {
@@ -185,7 +185,7 @@ namespace Tradie
         {
             try
             {
-                return GameController.Game.IngameState.UIRoot.Children[1].Children[70].Children[3];
+                return GameController.Game.IngameState.UIRoot.Children[1].Children[73].Children[3];
             }
             catch
             {
