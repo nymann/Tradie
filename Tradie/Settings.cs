@@ -1,31 +1,32 @@
-﻿using PoeHUD.Hud.Settings;
-using PoeHUD.Plugins;
+﻿using System.Configuration;
+using ExileCore.Shared.Attributes;
+using ExileCore.Shared.Interfaces;
+using ExileCore.Shared.Nodes;
 using SharpDX;
 
 namespace Tradie
 {
-    public class Settings : SettingsBase
+    public class Settings : ISettings
     {
         public Settings()
         {
-            Enable = false;
             ImageSize = new RangeNode<int>(32, 1, 78);
             TextSize = new RangeNode<int>(20, 1, 60);
             Spacing = new RangeNode<int>(3, 0, 20);
 
-            YourItemStartingLocationX = new RangeNode<int>(966, 0, (int) BasePlugin.API.GameController.Window.GetWindowRectangle().Width);
-            YourItemStartingLocationY = new RangeNode<int>(863, 0, (int) BasePlugin.API.GameController.Window.GetWindowRectangle().Height);
-            YourItemsAscending = true;
+            YourItemStartingLocationX = new RangeNode<int>(966, 0, 2560);
+            YourItemStartingLocationY = new RangeNode<int>(863, 0, 2560);
+            YourItemsAscending = new ToggleNode(true);
             YourItemTextColor = Color.LightBlue;
             YourItemBackgroundColor = Color.Black;
-            YourItemsImageLeftOrRight = true;
+            YourItemsImageLeftOrRight = new ToggleNode(true);
 
-            TheirItemStartingLocationX = new RangeNode<int>(966, 0, (int) BasePlugin.API.GameController.Window.GetWindowRectangle().Width);
-            TheirItemStartingLocationY = new RangeNode<int>(863, 0, (int) BasePlugin.API.GameController.Window.GetWindowRectangle().Height);
-            TheirItemsAscending = false;
+            TheirItemStartingLocationX = new RangeNode<int>(966, 0, 2560);
+            TheirItemStartingLocationY = new RangeNode<int>(863, 0, 2560);
+            TheirItemsAscending = new ToggleNode(false);
             TheirItemTextColor = Color.Red;
             TheirItemBackgroundColor = Color.Black;
-            TheirItemsImageLeftOrRight = false;
+            TheirItemsImageLeftOrRight = new ToggleNode(false);
         }
 
         [Menu("Image Size")]
@@ -64,5 +65,6 @@ namespace Tradie
         public ColorNode TheirItemTextColor { get; set; }
         [Menu("Background Color", 20016, 2001)]
         public ColorNode TheirItemBackgroundColor { get; set; }
+        public ToggleNode Enable { get; set; } = new ToggleNode(true);
     }
 }

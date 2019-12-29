@@ -1,53 +1,28 @@
-﻿using System;
+﻿using ExileCore;
+using ExileCore.PoEMemory;
+using ExileCore.PoEMemory.Components;
+using ExileCore.PoEMemory.Elements.InventoryElements;
+using ExileCore.Shared.Enums;
+using SharpDX;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using PoeHUD.Hud.Menu;
-using PoeHUD.Plugins;
-using PoeHUD.Poe;
-using PoeHUD.Poe.Components;
-using PoeHUD.Poe.Elements;
-using SharpDX;
-using SharpDX.Direct3D9;
-using Map = PoeHUD.Poe.Components.Map;
 
 namespace Tradie
 {
-    public class Core : BaseSettingsPlugin<Settings>
+    public partial class Core : BaseSettingsPlugin<Settings>
     {
         private readonly List<string> _whiteListedPaths = new List<string>
         {
-                "Art/2DItems/Currency",
-                "Art/2DItems/Maps"
+                "Art/2DItems/Currency"
+
+                //TODO, maps are loading strange and causing too many draw issues
+                //"Art/2DItems/Maps"
         };
 
-        public Core() => PluginName = "Tradie";
-
-        //public override void InitialiseMenu(MenuItem mainMenu)
-        //{
-        //    base.InitialiseMenu(mainMenu);
-        //    var rootMenu = PluginSettingsRootMenu;
-        //    MenuWrapper.AddMenu(rootMenu, "Image Size", Settings.ImageSize);
-        //    MenuWrapper.AddMenu(rootMenu, "Text Size", Settings.TextSize);
-        //    MenuWrapper.AddMenu(rootMenu, "Spacing", Settings.Spacing, "Spacing between image and text");
-        //    var yourItems = MenuWrapper.AddMenu(rootMenu, "Your Trade Items");
-        //    MenuWrapper.AddMenu(yourItems, "Ascending Order", Settings.YourItemsAscending);
-        //    MenuWrapper.AddMenu(yourItems, "Currency Before Or After", Settings.YourItemsImageLeftOrRight, "On: <Currency> x<Amount>\nOff: <Amount>x <Currency>");
-        //    MenuWrapper.AddMenu(yourItems, "Text Color", Settings.YourItemTextColor);
-        //    MenuWrapper.AddMenu(yourItems, "Background Color", Settings.YourItemBackgroundColor);
-        //    var yourItemLocation = MenuWrapper.AddMenu(yourItems, "Starting Location");
-        //    MenuWrapper.AddMenu(yourItemLocation, "X", Settings.YourItemStartingLocationX);
-        //    MenuWrapper.AddMenu(yourItemLocation, "Y", Settings.YourItemStartingLocationY);
-        //    var theirItems = MenuWrapper.AddMenu(rootMenu, "Their Trade Items");
-        //    MenuWrapper.AddMenu(theirItems, "Ascending Order", Settings.TheirItemsAscending);
-        //    MenuWrapper.AddMenu(theirItems, "Currency Before Or After", Settings.TheirItemsImageLeftOrRight, "On: <Currency> x<Amount>\nOff: <Amount>x <Currency>");
-        //    MenuWrapper.AddMenu(theirItems, "Text Color", Settings.TheirItemTextColor);
-        //    MenuWrapper.AddMenu(theirItems, "Background Color", Settings.TheirItemBackgroundColor);
-        //    var theirItemLocation = MenuWrapper.AddMenu(theirItems, "Starting Location");
-        //    MenuWrapper.AddMenu(theirItemLocation, "X", Settings.TheirItemStartingLocationX);
-        //    MenuWrapper.AddMenu(theirItemLocation, "Y", Settings.TheirItemStartingLocationY);
-        //}
+        private List<string> _initializedImageList = new List<string>();
 
         public override void Render()
         {
@@ -65,31 +40,31 @@ namespace Tradie
             var tradingItems = GetItemsInTradingWindow(npcTradingWindow);
             var ourData = new ItemDisplay
             {
-                    Items = GetItemObjects(tradingItems.ourItems).OrderBy(item => item.Path),
-                    X = Settings.YourItemStartingLocationX,
-                    Y = Settings.YourItemStartingLocationY,
-                    TextSize = Settings.TextSize,
-                    TextColor = Settings.YourItemTextColor,
-                    BackgroundColor = Settings.YourItemBackgroundColor,
-                    BackgroundTransparency = Settings.YourItemBackgroundColor.Value.A,
-                    ImageSize = Settings.ImageSize,
-                    Spacing = Settings.Spacing,
-                    LeftAlignment = Settings.YourItemsImageLeftOrRight,
-                    Ascending = Settings.YourItemsAscending
+                Items = GetItemObjects(tradingItems.ourItems).OrderBy(item => item.Path),
+                X = Settings.YourItemStartingLocationX,
+                Y = Settings.YourItemStartingLocationY,
+                TextSize = Settings.TextSize,
+                TextColor = Settings.YourItemTextColor,
+                BackgroundColor = Settings.YourItemBackgroundColor,
+                BackgroundTransparency = Settings.YourItemBackgroundColor.Value.A,
+                ImageSize = Settings.ImageSize,
+                Spacing = Settings.Spacing,
+                LeftAlignment = Settings.YourItemsImageLeftOrRight,
+                Ascending = Settings.YourItemsAscending
             };
             var theirData = new ItemDisplay
             {
-                    Items = GetItemObjects(tradingItems.theirItems).OrderBy(item => item.Path),
-                    X = Settings.TheirItemStartingLocationX,
-                    Y = Settings.TheirItemStartingLocationY,
-                    TextSize = Settings.TextSize,
-                    TextColor = Settings.TheirItemTextColor,
-                    BackgroundColor = Settings.TheirItemBackgroundColor,
-                    BackgroundTransparency = Settings.TheirItemBackgroundColor.Value.A,
-                    ImageSize = Settings.ImageSize,
-                    Spacing = Settings.Spacing,
-                    LeftAlignment = Settings.TheirItemsImageLeftOrRight,
-                    Ascending = Settings.TheirItemsAscending
+                Items = GetItemObjects(tradingItems.theirItems).OrderBy(item => item.Path),
+                X = Settings.TheirItemStartingLocationX,
+                Y = Settings.TheirItemStartingLocationY,
+                TextSize = Settings.TextSize,
+                TextColor = Settings.TheirItemTextColor,
+                BackgroundColor = Settings.TheirItemBackgroundColor,
+                BackgroundTransparency = Settings.TheirItemBackgroundColor.Value.A,
+                ImageSize = Settings.ImageSize,
+                Spacing = Settings.Spacing,
+                LeftAlignment = Settings.TheirItemsImageLeftOrRight,
+                Ascending = Settings.TheirItemsAscending
             };
             if (ourData.Items.Any())
                 DrawCurrency(ourData);
@@ -105,31 +80,31 @@ namespace Tradie
             var tradingItems = GetItemsInTradingWindow(tradingWindow);
             var ourData = new ItemDisplay
             {
-                    Items = GetItemObjects(tradingItems.ourItems).OrderBy(item => item.Path),
-                    X = Settings.YourItemStartingLocationX,
-                    Y = Settings.YourItemStartingLocationY,
-                    TextSize = Settings.TextSize,
-                    TextColor = Settings.YourItemTextColor,
-                    BackgroundColor = Settings.YourItemBackgroundColor,
-                    BackgroundTransparency = Settings.YourItemBackgroundColor.Value.A,
-                    ImageSize = Settings.ImageSize,
-                    Spacing = Settings.Spacing,
-                    LeftAlignment = Settings.YourItemsImageLeftOrRight,
-                    Ascending = Settings.YourItemsAscending
+                Items = GetItemObjects(tradingItems.ourItems).OrderBy(item => item.Path),
+                X = Settings.YourItemStartingLocationX,
+                Y = Settings.YourItemStartingLocationY,
+                TextSize = Settings.TextSize,
+                TextColor = Settings.YourItemTextColor,
+                BackgroundColor = Settings.YourItemBackgroundColor,
+                BackgroundTransparency = Settings.YourItemBackgroundColor.Value.A,
+                ImageSize = Settings.ImageSize,
+                Spacing = Settings.Spacing,
+                LeftAlignment = Settings.YourItemsImageLeftOrRight,
+                Ascending = Settings.YourItemsAscending
             };
             var theirData = new ItemDisplay
             {
-                    Items = GetItemObjects(tradingItems.theirItems).OrderBy(item => item.Path),
-                    X = Settings.TheirItemStartingLocationX,
-                    Y = Settings.TheirItemStartingLocationY,
-                    TextSize = Settings.TextSize,
-                    TextColor = Settings.TheirItemTextColor,
-                    BackgroundColor = Settings.TheirItemBackgroundColor,
-                    BackgroundTransparency = Settings.TheirItemBackgroundColor.Value.A,
-                    ImageSize = Settings.ImageSize,
-                    Spacing = Settings.Spacing,
-                    LeftAlignment = Settings.TheirItemsImageLeftOrRight,
-                    Ascending = Settings.TheirItemsAscending
+                Items = GetItemObjects(tradingItems.theirItems).OrderBy(item => item.Path),
+                X = Settings.TheirItemStartingLocationX,
+                Y = Settings.TheirItemStartingLocationY,
+                TextSize = Settings.TextSize,
+                TextColor = Settings.TheirItemTextColor,
+                BackgroundColor = Settings.TheirItemBackgroundColor,
+                BackgroundTransparency = Settings.TheirItemBackgroundColor.Value.A,
+                ImageSize = Settings.ImageSize,
+                Spacing = Settings.Spacing,
+                LeftAlignment = Settings.TheirItemsImageLeftOrRight,
+                Ascending = Settings.TheirItemsAscending
             };
             if (ourData.Items.Any())
                 DrawCurrency(ourData);
@@ -144,14 +119,33 @@ namespace Tradie
             var newColor = data.BackgroundColor;
             newColor.A = (byte) data.BackgroundTransparency;
             var maxCount = data.Items.Max(i => i.Amount);
-            var background = new RectangleF(data.LeftAlignment ? data.X : data.X + data.ImageSize, data.Y, data.LeftAlignment ? +data.ImageSize + data.Spacing + 3 + Graphics.MeasureText(symbol + " " + maxCount, data.TextSize).Width : -data.ImageSize - data.Spacing - 3 - Graphics.MeasureText(symbol + " " + maxCount, data.TextSize).Width, data.Ascending ? -data.ImageSize * data.Items.Count() : data.ImageSize * data.Items.Count());
+
+            var background = new RectangleF(data.LeftAlignment ? data.X : data.X + data.ImageSize, data.Y,
+                data.LeftAlignment
+                    ? +data.ImageSize + data.Spacing + 3 +
+                      Graphics.MeasureText(symbol + " " + maxCount, data.TextSize).X
+                    : -data.ImageSize - data.Spacing - 3 -
+                      Graphics.MeasureText(symbol + " " + maxCount, data.TextSize).X,
+                data.Ascending ? -data.ImageSize * data.Items.Count() : data.ImageSize * data.Items.Count());
+
             Graphics.DrawBox(background, newColor);
+
             foreach (var ourItem in data.Items)
             {
                 counter++;
-                var imageBox = new RectangleF(data.X, data.Ascending ? data.Y - counter * data.ImageSize : data.Y - data.ImageSize + counter * data.ImageSize, data.ImageSize, data.ImageSize);
+                var imageBox = new RectangleF(data.X,
+                    data.Ascending
+                        ? data.Y - counter * data.ImageSize
+                        : data.Y - data.ImageSize + counter * data.ImageSize,
+                    data.ImageSize, data.ImageSize);
+
                 DrawImage(ourItem.Path, imageBox);
-                Graphics.DrawText(data.LeftAlignment ? $"{symbol} {ourItem.Amount}" : $"{ourItem.Amount} {symbol}", data.TextSize, new Vector2(data.LeftAlignment ? data.X + data.ImageSize + data.Spacing : data.X - data.Spacing, imageBox.Center.Y - data.TextSize / 2 - 3), data.TextColor, data.LeftAlignment ? FontDrawFlags.Left : FontDrawFlags.Right);
+
+                Graphics.DrawText(data.LeftAlignment ? $"{symbol} {ourItem.Amount}" : $"{ourItem.Amount} {symbol}",
+                    new Vector2(data.LeftAlignment ? data.X + data.ImageSize + data.Spacing : data.X - data.Spacing,
+                        imageBox.Center.Y - data.TextSize / 2 - 3), data.TextColor,
+                    data.LeftAlignment ? FontAlign.Left : FontAlign.Right);
+
             }
         }
 
@@ -159,7 +153,7 @@ namespace Tradie
         {
             try
             {
-                Graphics.DrawPluginImage(path, rec);
+                Graphics.DrawImage(path, rec);
             }
             catch
             {
@@ -173,7 +167,7 @@ namespace Tradie
         {
             try
             {
-                return GameController.Game.IngameState.UIRoot.Children[1].Children[75].Children[3].Children[1].Children[0].Children[0];
+                return GameController.Game.IngameState.UIRoot.Children[1].Children[82].Children[3].Children[1].Children[0].Children[0];
             }
             catch
             {
@@ -185,7 +179,7 @@ namespace Tradie
         {
             try
             {
-                return GameController.Game.IngameState.UIRoot.Children[1].Children[74].Children[3];
+                return GameController.Game.IngameState.UIRoot.Children[1].Children[81].Children[3];
             }
             catch
             {
@@ -242,6 +236,8 @@ namespace Tradie
                     if (normalInventoryItem.Item == null) continue;
                     var metaData = normalInventoryItem.Item.GetComponent<RenderItem>().ResourcePath;
                     if (metaData.Equals("")) continue;
+                    if (!IsWhitelisted(metaData))
+                        continue;
                     var stack = normalInventoryItem.Item.GetComponent<Stack>();
                     var amount = stack?.Info == null ? 1 : stack.Size;
                     var name = GetImagePath(metaData, normalInventoryItem);
@@ -255,8 +251,6 @@ namespace Tradie
                         }
 
                     if (found) continue;
-                    if (!IsWhitelisted(metaData))
-                        continue;
                     var path = GetImagePath(metaData, normalInventoryItem);
                     items.Add(new Item(name, amount, path));
                 }
@@ -273,7 +267,7 @@ namespace Tradie
             metadata = metadata.Replace(".dds", ".png");
             var url = $"http://webcdn.pathofexile.com/image/{metadata}";
             var metadataPath = metadata.Replace('/', '\\');
-            var fullPath = $"{PluginDirectory}\\images\\{metadataPath}";
+            var fullPath = $"{DirectoryFullName}\\images\\{metadataPath}";
 
             /////////////////////////// Yucky Map bits ///////////////////////////////
             if (invItem.Item.HasComponent<Map>())
@@ -288,17 +282,32 @@ namespace Tradie
                 }
 
                 url = $"http://webcdn.pathofexile.com/image/{metadata}?mn=1&mr={isShapedMap}&mt={mapTier}";
-                fullPath = $"{PluginDirectory}\\images\\{metadataPath.Replace(".png", "")}_{mapTier}_{isShapedMap}.png";
+                fullPath = $"{DirectoryFullName}\\images\\{metadataPath.Replace(".png", "")}_{mapTier}_{isShapedMap}.png";
             }
             //
 
             if (File.Exists(fullPath))
+            {
+                if (_initializedImageList.All(x => x != fullPath))
+                {
+                    Graphics.InitImage($"{fullPath}", false);
+                    _initializedImageList.Add(fullPath);
+                }
+
                 return fullPath;
+            }
+
             var path = fullPath.Substring(0, fullPath.LastIndexOf('\\'));
             Directory.CreateDirectory(path);
             using (var client = new WebClient())
             {
                 client.DownloadFile(new Uri(url), fullPath);
+            }
+
+            if (_initializedImageList.All(x => x != fullPath))
+            {
+                Graphics.InitImage($"{fullPath}", false);
+                _initializedImageList.Add(fullPath);
             }
 
             return fullPath;

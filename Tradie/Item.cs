@@ -1,4 +1,6 @@
-﻿namespace Tradie
+﻿using System.Linq;
+
+namespace Tradie
 {
     public class Item
     {
@@ -15,7 +17,7 @@
         {
             ItemName = itemName;
             Amount = amount;
-            Path = path;
+            Path = path.Split('\\').Last();
         }
     }
 }
