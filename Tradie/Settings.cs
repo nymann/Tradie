@@ -28,6 +28,11 @@ namespace Tradie
             TheirItemBackgroundColor = Color.Black;
             TheirItemsImageLeftOrRight = new ToggleNode(false);
         }
+        [Menu("NPC Trade Window Index #")]
+        public RangeNode<int> NPCTradeIndex { get; set; } = new RangeNode<int>(82, 0, 400);
+
+        [Menu("Player Trade Window Index #")] 
+        public RangeNode<int> PlayerTradeIndex { get; set; } = new RangeNode<int>(83, 0, 400);
 
         [Menu("Image Size")]
         public RangeNode<int> ImageSize { get; set; }
@@ -35,7 +40,6 @@ namespace Tradie
         public RangeNode<int> TextSize { get; set; }
         [Menu("Spacing", "Spacing between image and text")]
         public RangeNode<int> Spacing { get; set; }
-
         [Menu("Your Trade Items", 1001)]
         public EmptyNode Blank1 { get; set; }
         [Menu("X", 10011, 1001)]

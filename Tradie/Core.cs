@@ -167,7 +167,7 @@ namespace Tradie
         {
             try
             {
-                return GameController.Game.IngameState.UIRoot.Children[1].Children[82].Children[3].Children[1].Children[0].Children[0];
+                return GameController.Game.IngameState.UIRoot.Children[1].Children[Settings.PlayerTradeIndex.Value].Children[3].Children[1].Children[0].Children[0];
             }
             catch
             {
@@ -179,7 +179,7 @@ namespace Tradie
         {
             try
             {
-                return GameController.Game.IngameState.UIRoot.Children[1].Children[81].Children[3];
+                return GameController.Game.IngameState.UIRoot.Children[1].Children[Settings.NPCTradeIndex.Value].Children[3];
             }
             catch
             {
