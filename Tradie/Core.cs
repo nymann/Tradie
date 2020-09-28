@@ -139,7 +139,7 @@ namespace Tradie
                         : data.Y - data.ImageSize + counter * data.ImageSize,
                     data.ImageSize, data.ImageSize);
 
-                DrawImage(ourItem.Path, imageBox);
+                Graphics.DrawImageGui(ourItem.Path, imageBox);
 
                 Graphics.DrawText(data.LeftAlignment ? $"{symbol} {ourItem.Amount}" : $"{ourItem.Amount} {symbol}",
                     new Vector2(data.LeftAlignment ? data.X + data.ImageSize + data.Spacing : data.X - data.Spacing,
