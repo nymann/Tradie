@@ -34,9 +34,9 @@ namespace Tradie
 
         private void ShowNpcTradeItems()
         {
-            var npcTradingWindow = GetNpcTadeWindow();
-            if (npcTradingWindow == null || !npcTradingWindow.IsVisible)
+            if (!NpcTradeWindowVisible)
                 return;
+            var npcTradingWindow = GetNpcTradeWindow();
             var tradingItems = GetItemsInTradingWindow(npcTradingWindow);
             var ourData = new ItemDisplay
             {
@@ -74,9 +74,9 @@ namespace Tradie
 
         private void ShowPlayerTradeItems()
         {
-            var tradingWindow = GetTradingWindow();
-            if (tradingWindow == null || !tradingWindow.IsVisible)
+            if (!TradingWindowVisible)
                 return;
+            var tradingWindow = GetTradingWindow();
             var tradingItems = GetItemsInTradingWindow(tradingWindow);
             var ourData = new ItemDisplay
             {
@@ -163,11 +163,20 @@ namespace Tradie
             return true;
         }
 
+        private bool TradingWindowVisible
+        {
+            get
+            {
+                var windowElement = GameController.IngameState.IngameUi.GetChildAtIndex(Settings.PlayerTradeIndex.Value).GetChildAtIndex(3);
+                return windowElement != null && windowElement.IsVisible;
+            }
+        }
+
         private Element GetTradingWindow()
         {
             try
             {
-                return GameController.Game.IngameState.UIRoot.Children[1].Children[Settings.PlayerTradeIndex.Value].Children[3].Children[1].Children[0].Children[0];
+                return GameController.IngameState.IngameUi.GetChildAtIndex(Settings.PlayerTradeIndex.Value).GetChildAtIndex(3).GetChildAtIndex(1).GetChildAtIndex(0).GetChildAtIndex(0);
             }
             catch
             {
@@ -175,11 +184,20 @@ namespace Tradie
             }
         }
 
-        private Element GetNpcTadeWindow()
+        private bool NpcTradeWindowVisible
+        {
+            get
+            {
+                var windowElement = GameController.IngameState.IngameUi.GetChildAtIndex(Settings.NPCTradeIndex.Value).GetChildAtIndex(3);
+                return windowElement != null && windowElement.IsVisible;
+            }
+        }
+
+        private Element GetNpcTradeWindow()
         {
             try
             {
-                return GameController.Game.IngameState.UIRoot.Children[1].Children[Settings.NPCTradeIndex.Value].Children[3];
+                return GameController.IngameState.IngameUi.GetChildAtIndex(Settings.NPCTradeIndex.Value).GetChildAtIndex(3);
             }
             catch
             {
@@ -189,10 +207,16 @@ namespace Tradie
 
         private (List<NormalInventoryItem> ourItems, List<NormalInventoryItem> theirItems) GetItemsInTradingWindow(Element tradingWindow)
         {
-            var ourItemsElement = tradingWindow.Children[0];
-            var theirItemsElement = tradingWindow.Children[1];
             var ourItems = new List<NormalInventoryItem>();
             var theirItems = new List<NormalInventoryItem>();
+            if (tradingWindow.ChildCount < 2)
+            {
+                return (ourItems, theirItems);
+            }
+
+            var ourItemsElement = tradingWindow.GetChildAtIndex(0);
+            var theirItemsElement = tradingWindow.GetChildAtIndex(1);
+
 
             // We are skipping the first, since it's a Element ("Place items you want to trade here") that we don't need.
             // 
