@@ -139,7 +139,7 @@ namespace Tradie
                         : data.Y - data.ImageSize + counter * data.ImageSize,
                     data.ImageSize, data.ImageSize);
 
-                Graphics.DrawImageGui(ourItem.Path, imageBox);
+                Graphics.DrawImageGui(ourItem.Path, imageBox, new RectangleF(0, 0, 1, 1));
 
                 Graphics.DrawText(data.LeftAlignment ? $"{symbol} {ourItem.Amount}" : $"{ourItem.Amount} {symbol}",
                     new Vector2(data.LeftAlignment ? data.X + data.ImageSize + data.Spacing : data.X - data.Spacing,
@@ -147,20 +147,6 @@ namespace Tradie
                     data.LeftAlignment ? FontAlign.Left : FontAlign.Right);
 
             }
-        }
-
-        private bool DrawImage(string path, RectangleF rec)
-        {
-            try
-            {
-                Graphics.DrawImage(path, rec);
-            }
-            catch
-            {
-                return false;
-            }
-
-            return true;
         }
 
         private bool TradingWindowVisible
