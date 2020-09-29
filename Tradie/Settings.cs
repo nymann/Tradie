@@ -29,10 +29,10 @@ namespace Tradie
             TheirItemsImageLeftOrRight = new ToggleNode(false);
         }
         [Menu("NPC Trade Window Index #")]
-        public RangeNode<int> NPCTradeIndex { get; set; } = new RangeNode<int>(82, 0, 400);
+        public RangeNode<int> NPCTradeIndex { get; set; } = new RangeNode<int>(93, 0, 400);
 
         [Menu("Player Trade Window Index #")] 
-        public RangeNode<int> PlayerTradeIndex { get; set; } = new RangeNode<int>(83, 0, 400);
+        public RangeNode<int> PlayerTradeIndex { get; set; } = new RangeNode<int>(94, 0, 400);
 
         [Menu("Image Size")]
         public RangeNode<int> ImageSize { get; set; }
